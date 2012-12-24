@@ -1,0 +1,4 @@
+Q: should types be able to make qualities that are non-generic/shareable??
+	if so, will they ever be able to mutate/migrate them form gen->specific or vice versa?
+
+

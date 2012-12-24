@@ -1,0 +1,4 @@
+echo
+php ./teardown.php
+php ./setup.php
+echo
