@@ -61,11 +61,16 @@ $p2->typifyPoint($t1->ID);
 $p2->typifyPoint($t2->ID);
 $p2->typifyPoint($t3->ID);
 $p2->typifyPoint($t4->ID);
+	$p2b = new Point();
+	$p2b->registerPoint("Son of Second Song");
+	$p2b->typifyPoint($t1->ID);
+	$p2b->reverseAdoptPoint($p2->ID);
 
 $p3 = new Point();
 $p3->registerPoint("Third Song");
 $p3->typifyPoint($t1->ID);
 $p3->typifyPoint($t4->ID);
+$p3->qualifyPoint($t2->ID);
 
 
 // display test bench

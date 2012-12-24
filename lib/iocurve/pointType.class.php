@@ -9,9 +9,19 @@ class PointType extends IOCurve {
 ***/
   function registerPointType($name, $lgdesc='undefined', $reservedvar=null) {
 	// handle missing RESERVEDVAR value
-	if ($reservedvar === null) {
-                $reservedvar = uniqid(strtoupper($name), true);
+	if (empty($reservedvar)) {
+		$reservedvar = str_replace(" ", "_", strtoupper($name));
         }
+	
+	// 50 tries to make a clean machine_name for them
+	while ($this->preregisterPointTypeName($reservedvar) === false) {
+		$reservedvar .= rand(0,9);
+		$tries++;
+		
+		if ($tries > 50) { 
+			return false;
+		}
+	}		
 
 	$i = "
 INSERT INTO ioc.PType 
@@ -24,6 +34,21 @@ SET name = '" . $name . "'
 
 	$this->ID = $this->conn->insert_id;
   }
+
+/***
+* @desc		handler to assure unique machine_name
+***/
+	function preregisterPointTypeName($reservedvar) {
+		$q = "
+SELECT pkPType
+FROM PType
+WHERE RESERVEDVAR = '" . $reservedvar . "'";
+		$r = $this->conn->query($q);
+		
+		if ($r->num_rows > 0) {
+			return false;
+		}
+	}
 
 /***
 * requires ID in object currently

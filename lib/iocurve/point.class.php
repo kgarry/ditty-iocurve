@@ -51,15 +51,28 @@ WHERE pkP = " . $ID;
 	else {
 		$q = "
 SELECT P.name, P.deactivated, P.dateCreated,
- GROUP_CONCAT(DISTINCT PType.RESERVEDVAR) as PTypesRESERVEDVARS, GROUP_CONCAT(DISTINCT PType.name) as PTypesNames,
- GROUP_CONCAT(DISTINCT PQual.name) as PQualsNames, GROUP_CONCAT(DISTINCT PQual.pkPQual) as PQualsIDS
+ GROUP_CONCAT(DISTINCT P_Par.pkP) AS ParentIDS, GROUP_CONCAT(DISTINCT P_Par.name) AS ParentNames,
+ GROUP_CONCAT(DISTINCT P_Child.pkP) AS ChildIDS, GROUP_CONCAT(DISTINCT P_Child.name) AS ChildNames,
+ GROUP_CONCAT(DISTINCT PType.RESERVEDVAR) as PTypeRESERVEDVARS, GROUP_CONCAT(DISTINCT PType.name) as PTypeNames,
+ GROUP_CONCAT(DISTINCT PQual.name) as PQualNames, GROUP_CONCAT(DISTINCT PQual.pkPQual) as PQualIDS,
+ GROUP_CONCAT(DISTINCT PQual2.name) as PQualNamesInherited, GROUP_CONCAT(DISTINCT PQual2.pkPQual) as PQualIDSInherited
+
 FROM P
+ LEFT JOIN PLP PLP_Par ON PLP_Par.fkP2 = P.pkP
+ LEFT JOIN P P_Par ON P_Par.pkP = PLP_Par.fkP
+
+ LEFT JOIN PLP PLP_Child ON PLP_Child.fkP = P.pkP
+ LEFT JOIN P P_Child ON P_Child.pkP = PLP_Child.fkP2
+
  LEFT JOIN PLPType ON PLPType.fkP = " . $ID . "
  LEFT JOIN PType ON PType.pkPType = PLPType.fkPType
+ LEFT JOIN PQualLPType ON PQualLPType.fkPType = PType.pkPType
+ LEFT JOIN PQual PQual2 ON PQual2.pkPQual = PQualLPType.fkPQual
+ 
  LEFT JOIN PLPQual ON PLPQual.fkP = " . $ID . "
  LEFT JOIN PQual ON PQual.pkPQual = PLPQual.fkPQual
-WHERE pkP = " . $ID . "
-GROUP BY pkP";
+WHERE P.pkP = " . $ID . "
+GROUP BY P.pkP";
 	}
 //exit($q);	
 
@@ -142,6 +155,19 @@ SET fkP = " . $this->ID . "
   }
 
 /***
+* FIXME
+***/
+	function reverseAdoptPoint($new_parent_ID) {
+		$i = "
+INSERT INTO PLP
+SET fkP = " . $new_parent_ID . "
+, fkP2 = " . $this->ID . "
+, dateCreated = UNIX_TIMESTAMP()";
+	
+		$this->conn->query($i);
+	}
+
+/***
 * child_ID must be attached kto object prior
 * FIXME this needs to look for sub-children and make sure that they are not orpahned without a plan
 ***/
@@ -181,7 +207,31 @@ WHERE fkP = " . $this->ID . "
                 $this->conn->query($u);
         }
 
+/***
+* @desc         add a PType to this P
+***/
+        function qualifyPoint($fkQual) {
+                $i = "
+INSERT INTO PLPQual
+SET fkP = " . $this->ID . "
+, fkPQual = " . $fkQual . "
+, dateCreated = UNIX_TIMESTAMP()";
 
+                $this->conn->query($i);
+        }
+
+/***
+* @desc         deactivate a PType for this P
+***/
+        function disqualifyPoint($fkQual) {
+                $u = "
+UPDATE PLPQual
+SET deactivated = UNIX_TIMESTAMP()
+WHERE fkP = " . $this->ID . "
+, fkPQual = " . $fkQual;
+
+                $this->conn->query($u);
+        }
 
 }
 
