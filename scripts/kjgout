@@ -1,0 +1,16 @@
+
+TRUNCATE PType (complete)
+TRUNCATE PQual (complete)
+TRUNCATE P (complete)
+TRUNCATE PLP (complete)
+TRUNCATE PLPType (complete)
+TRUNCATE PLPQual (complete)
+TRUNCATE PQualLPType (complete)
+
+	Runtime: 0.18036580085754 seconds 
+
+	Runtime: 6.5270180702209 seconds 
+
+array (
+  0 => 0.32284307479858,
+)
