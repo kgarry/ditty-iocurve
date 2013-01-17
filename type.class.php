@@ -2,21 +2,21 @@
 require_once("iocurve.class.php");
 
 
-class PointType extends IOCurve {
+class Type extends IOCurve {
 /***
 * @desc		new point quality, registered to IOC
 * @todo		decide how to handle the isCore characteristic - should we look up project type in a global config table?
 ***/
-  function registerPointType($name, $lgdesc='undefined', $reservedvar=null) {
-	// handle missing RESERVEDVAR value
-	if (empty($reservedvar)) {
-		$reservedvar = str_replace(" ", "_", strtoupper($name));
+  function registerType($name, $MACHINE=null, $lgdesc='undefined') {
+	// handle missing MACHINE value
+	if (empty($MACHINE)) {
+		$MACHINE = str_replace(" ", "_", strtoupper($name));
         }
 	
 	// 50 tries to make a clean machine_name for them
 	$tries = (int) 0;
-	while ($this->preregisterPointTypeName($reservedvar) === false) {
-		$reservedvar .= rand(0,9);
+	while ($this->preregisterTypeName($MACHINE) === false) {
+		$MACHINE .= rand(0,9);
 		$tries++;
 		
 		if ($tries > 50) { 
@@ -28,7 +28,7 @@ class PointType extends IOCurve {
 INSERT INTO ioc.PType 
 SET name = '" . $name . "'
  , lgDesc = '" . $lgdesc . "'
- , RESERVEDVAR = '" . $reservedvar . "'
+ , MACHINE = '" . $MACHINE . "'
  , dateCreated = UNIX_TIMESTAMP()";
 	$this->conn->query($i);
 
@@ -38,11 +38,11 @@ SET name = '" . $name . "'
 /***
 * @desc		handler to assure unique machine_name
 ***/
-	function preregisterPointTypeName($reservedvar) {
+	function preregisterTypeName($MACHINE) {
 		$q = "
 SELECT pkPType
 FROM PType
-WHERE RESERVEDVAR = '" . $reservedvar . "'";
+WHERE MACHINE = '" . $MACHINE . "'";
 		$r = $this->conn->query($q);
 		
 		if ($r->num_rows > 0) {
@@ -54,7 +54,7 @@ WHERE RESERVEDVAR = '" . $reservedvar . "'";
 * requires ID in object currently
 * 
 ***/
-  function loadPointType() {
+  function loadType() {
     $q = "
 SELECT name, description, mode, dateCreated
 FROM ioc.PType
@@ -68,7 +68,7 @@ WHERE pkPType = " . $this->ID;
 /***
 * @desc		rename PType	
 ***/
-  function namePointType($new_name) {
+  function nameType($new_name) {
     $u = "
 UPDATE PType
 SET name = '" . $new_name . "'
@@ -80,7 +80,7 @@ WHERE pkP = " . $this->ID;
 /***
 * @desc		update description of PType
 ***/
-  function describePointType($new_desc) {
+  function describeType($new_desc) {
     $u = "
 UPDATE PType
 SET lgDesc = '" . $new_desc . "'
@@ -92,7 +92,7 @@ WHERE pkP = " . $this->ID;
 /***
 *
 ***/
-  function deactivatePointType() {
+  function deactivateType() {
     $u = "
 UPDATE PType
 SET mode = b'1'
@@ -106,7 +106,7 @@ WHERE pkPType = " . $this->ID;
 * could change to allow multi
 * could change to allow by name
 ***/
-  function qualifyPointType($fkQual) {
+  function qualifyType($fkQual) {
     $i = "
 INSERT INTO ioc.PQualLPType
 SET fkPType = " . $this->ID . "
@@ -119,7 +119,7 @@ SET fkPType = " . $this->ID . "
 /***
 * requires remove_quality_ID prior to call
 ***/
-  function disqualifyPointType($fkQual) {
+  function disqualifyType($fkQual) {
     $u = "
 UPDATE ioc.PQualLPType
 SET mode = b'1'
@@ -132,11 +132,11 @@ WHERE fkPType = " . $this->ID . "
 /***
 * #desc		
 ***/
-	public function findPointTypeByName($name) {
+	public function findTypeByName($name) {
 		$q = "
 SELECT pkPType as ID
 FROM PType
-WHERE RESERVEDVAR = '" . $name . "'";
+WHERE MACHINE = '" . $name . "'";
 		$this->conn->query($q);
 		$ret = $r->fetch_object($r);
 

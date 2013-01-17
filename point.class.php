@@ -57,7 +57,7 @@ SELECT P.pkP, P.name, P.mode, P.dateCreated,
  GROUP_CONCAT(DISTINCT P_Par.name SEPARATOR '[***]') AS arr_ParentNames,
  GROUP_CONCAT(DISTINCT P_Child.pkP SEPARATOR '[***]') AS arr_ChildIDS, 
  GROUP_CONCAT(DISTINCT P_Child.name SEPARATOR '[***]') AS arr_ChildNames,
- GROUP_CONCAT(DISTINCT PType.RESERVEDVAR SEPARATOR '[***]') AS arr_PTypeRESERVEDVARS, 
+ GROUP_CONCAT(DISTINCT PType.MACHINE SEPARATOR '[***]') AS arr_PTypeMACHINES, 
  GROUP_CONCAT(DISTINCT PType.name SEPARATOR '[***]') AS arr_PTypeNames,
  GROUP_CONCAT(DISTINCT PQual.name SEPARATOR '[***]') AS arr_PQualNames, 
  GROUP_CONCAT(DISTINCT PQual.pkPQual SEPARATOR '[***]') AS arr_PQualIDS,
@@ -97,16 +97,16 @@ SELECT P.pkP as ID
 FROM P
  JOIN PLPType PLPT ON PLPT.fkP = P.pkP
  JOIN PType ON PType.pkPType = PLPT.fkPType
-  AND PType.RESERVEDVAR = '" . $filter . "'
+  AND PType.MACHINE = '" . $filter . "'
 GROUP BY P.pkP";
-#print($q);
+//echo $q . "\n";
 		$r = $this->conn->query($q);
 
         	return $r;
 	}
 
 /***
-* @todo		add RESERVEDVAR field to table
+* @todo		add MACHINE field to table
 ***/
 	public function loadPointIDListByQual($PQualMName) {
 		$q = "
@@ -114,7 +114,7 @@ SELECT P.pkP as ID
 FROM P
  JOIN PLPQual PLPQ ON PLPQ.fkP = P.pkP
  JOIN PQual ON PQual.pkPQual = PLPQ.fkPQual
-  AND PQual.RESERVEDVAR = '" . $filter . "'
+  AND PQual.MACHINE = '" . $filter . "'
 GROUP BY P.pkP
 		";
 		
@@ -308,7 +308,7 @@ SET fkP = " . $this->ID . "
 			$i = "
 INSERT INTO PLPType
 SET fkP = " . $this->ID . "
-, fkPType = (SELECT pkPType FROM PType WHERE RESERVEDVAR = '" . $item . "')
+, fkPType = (SELECT pkPType FROM PType WHERE MACHINE = '" . $item . "')
 , dateCreated = UNIX_TIMESTAMP()";
 			$this->conn->query($i);
 		}
@@ -358,6 +358,24 @@ SET fkP = " . $this->ID . "
 , dateCreated = UNIX_TIMESTAMP()";
 
                 $this->conn->query($i);
+		//$this->saveNosqlPoint();
+	}
+
+/***
+* @desc         add a PType to this P
+***/
+        function qualifyPointByName($item, $val) {
+		$i = "
+INSERT INTO PLPQual
+SET fkP = " . $this->ID . "
+ , fkPQual = (SELECT pkPQual FROM PQual WHERE MACHINE = '" . $item . "')
+ , value = '" . $val . "'
+ , dateCreated = UNIX_TIMESTAMP()";
+
+		// FIXME -- add this trap to the mysqli overload
+                if (!$this->conn->query($i)) {
+			throw new Exception($i . "\n\n" . $this->conn->error);
+		}
 		//$this->saveNosqlPoint();
         }
 

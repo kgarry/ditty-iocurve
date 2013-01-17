@@ -31,4 +31,4 @@ foreach ($qs as $q) {
 //$x->nosql->drop();
 
 // Log
-echo "\n\tRuntime: " . (microtime(true) - $start) . " seconds \n";
+echo "- Runtime: " . (microtime(true) - $start) . " seconds \n";

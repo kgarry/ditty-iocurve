@@ -15,33 +15,44 @@ require_once($root_path . $lib_path . "/quality.class.php");
 // Time Signature, Tempo, Privacy Mode, Popularity
 echo "\t ... making qualities\n";
 $soundfile = new Quality();
-$soundfile->registerQuality("Sound File");
+	$soundfile->registerQuality("Sound File");
 
 $position = new Quality();
-$position->registerQuality("Position");
+	$position->registerQuality("Position");
 
 $timeSignature = new Quality();
-$timeSignature->registerQuality("Time Signature");
+	$timeSignature->registerQuality("Time Signature");
 
 $tempo = new Quality();
-$tempo->registerQuality("Tempo");
+	$tempo->registerQuality("Tempo");
 
 $volume = new Quality(); 
-$volume->registerQuality("Volume");
+	$volume->registerQuality("Volume");
+
+$location = new Quality(); 
+	$location->registerQuality("Location Start");
+
+$author = new Quality(); 
+	$author->registerQuality("Author");
+
+$instrSeq = new Quality(); 
+	$instrSeq->registerQuality("Instrument Sequence");
 
 // $duration = new Quality(); 
 // $durationSeconds->registerQuality("Duration Seconds");
-
-$location = new Quality(); 
-$location->registerQuality("Location Start");
 
 
 // Types
 echo "\t ... making types\n";
 $song = new Type();
 	$song->registerType("Song", "SONG");
-	$song->qualifyType($timeSignature->ID);
+	$song->qualifyType($timeSignature->ID);  
 	$song->qualifyType($tempo->ID);
+	$song->qualifyType($author->ID);
+
+$songComplement = new Type();
+	$song->registerType("Song Complement", "SONG_COMPLEMENT");
+	$song->qualifyType($instrSeq->ID);
 
 $user = new Type();
 	$user->registerType("User", "USER");
@@ -49,9 +60,9 @@ $user = new Type();
 $instrument = new Type();
 	$instrument->registerType("Instrument", "INSTRUMENT");
 
-$positionInstrument = new Type();
-	$positionInstrument->registerType("Position Instrument", "POSITION_INSTRUMENT");
-	$positionInstrument->qualifyType($position->ID);
+$posInstrument = new Type();
+	$posInstrument->registerType("Position Instrument", "POSITION_INSTRUMENT");
+	$posInstrument->qualifyType($position->ID);
 
 $tone = new Type();
 	$tone->registerType("Tone", "TONE");
@@ -64,7 +75,7 @@ $note = new Type();
 
 
 // tones
-echo "\t ... making tones\n";
+echo "\t ... making tones (points)\n";
 $n_arr = array("Rest", "A","Asharp","B","C","Csharp","D","Dsharp","E","F","Fsharp","G","Gsharp");
 foreach ($n_arr as $item) {
 	$n = new Point();
@@ -74,22 +85,29 @@ foreach ($n_arr as $item) {
 
 
 // Instruments
-echo "\t ... making cello\n";
+echo "\t ... making cello (point)\n";
 $n = new Point();
 	$n->registerPoint("Cello");
 	$n->typifyPointByTypeName("INSTRUMENT");
-	$n->qualifyPoint("SOUNDFILE", "sounds/cello");
+	$n->qualifyPointByName("SOUND_FILE", "sounds/cello");
 	
 	$PList = $n->loadPointIDListByType("TONE");
-	foreach ($PList as $item) {
+	for ($i=0; $item = $PList->fetch_assoc(); $i++) {
 		print("\tadopting ".$item['ID']."\r");
 		$n->adoptPoint($item['ID']);
 	}
 	
-	#$n->adoptPoint($p->ID);
-	
-echo "\t ... making piano\n";
+
+// TODO -- here we can test a clone of a point and then change the name and sound files
+echo "\t ... making piano (point)\n";
 $n = new Point();
 	$n->registerPoint("Piano");
 	$n->typifyPointByTypeName("INSTRUMENT");
-	$n->qualifyPoint("SOUNDFILE", "sounds/piano");
+	$n->qualifyPointByName("SOUND_FILE", "sounds/piano");
+
+echo "\t ... making snare drum (point)\n";
+$n = new Point();
+	$n->registerPoint("Snare Drum");
+	$n->typifyPointByTypeName("INSTRUMENT");
+	$n->qualifyPointByName("SOUND_FILE", "sounds/snare_drum");
+

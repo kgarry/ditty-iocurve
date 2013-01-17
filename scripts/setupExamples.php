@@ -16,15 +16,15 @@ echo "\t...writing a blues song\n";
 $p = new Point();
 	$p->registerPoint("A Blues Song");
 	$p->typifyPointByTypeName("SONG");
-	$p->qualifyPoint("TIME_SIGNATURE", "4/4");
-	$p->qualifyPoint("INSTRUMENT_SEQUENCE", "garble-dee-gook..vexflow");
-	$p->qualifyPoint("LOCATION", 1);
+	$p->qualifyPointByName("TIME_SIGNATURE", "4/4");
+	$p->qualifyPointByName("INSTRUMENT_SEQUENCE", "garble-dee-gook..vexflow");
+	$p->qualifyPointByName("LOCATION_START", 1);
 
 echo "\t...writing a rock song\n";
 $p = new Point(); 
 	$p->registerPoint("A Rock Song");
 	$p->typifyPointByTypeName("SONG");
-	$p->qualifyPoint("TIME_SIGNATURE", "4/4");
-	$p->qualifyPoint("INSTRUMENT_SEQUENCE", "garble-dee-gook..vexflow");
-	$p->qualifyPoint("LOCATION", 1);
+	$p->qualifyPointByName("TIME_SIGNATURE", "4/4");
+	$p->qualifyPointByName("INSTRUMENT_SEQUENCE", "garble-dee-gook..vexflow");
+	$p->qualifyPointByName("LOCATION_START", 1);
 
