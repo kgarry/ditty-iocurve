@@ -52,11 +52,33 @@ GROUP BY pq.pkPQual
 /***
 *@param		args = list of search filters??
 ***/
-	private function renderQuality($q) {
-		$ret = '<div style="border-bottom: black solid thin; wdith: 100%">' . 
-			$q['Name'] . " :#P: " . $q['numPoints'] . " :#T: " . $q['numTypes'] .
+	private function renderQuality($o) {
+		$details = '<span style="color: blue; cursor: pointer" ' .
+			'onclick="$(\'#' . $this->defineQualityDetailDomID($o['pkPQual']) . '\').toggle();">' .
+			'[details]</span>';
+
+		$ret = '<div style="border-bottom: black solid thin; width: 100%">' .
+			$details . $o['Name'] . $this->renderQualityDetail($o) . 
 			'</div>';
 
 		return $ret;	
+	}
+
+/***
+*
+***/
+	private function renderQualityDetail($o) {
+		$ret = '<div id="' . $this->defineQualityDetailDomID($o['pkPQual']) . '" style="display: none; padding-left: 8px; background-color: #f5;">' .
+			'#Types: ' . $o['numTypes'] . ' (' . $o['typeList'] . ')' .
+			'<br>#Points: ' . $o['numPoints'] . 
+			'</div>';
+
+		return $ret;
+	}
+
+	private function defineQualityDetailDomID($id) {
+		$ret = "qualDetail_" . $id;
+		
+		return $ret;		
 	}
 }
