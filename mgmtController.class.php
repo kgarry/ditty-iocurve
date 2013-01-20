@@ -2,7 +2,7 @@
 
 //require_once("../iocurve.class.php"); //fixme use defined pat from bootstrap
 
-class IOCurveManageController {
+class ManageController {
 	
 	function __construct() {
 		$this->top = "<html><head></head><body>";
@@ -13,7 +13,7 @@ class IOCurveManageController {
 		$this->bottom = "</body></html>";
 	}
 
-	public function drawIOCurveManageController() {
+	public function renderManageController() {
 		return $this->top .
 			$this->header .
 			$this->menu .

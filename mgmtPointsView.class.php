@@ -2,7 +2,7 @@
 
 require_once("point.class.php");
 
-class IocMgmtPointsView extends Point {
+class MgmtPointsView extends Point {
 	public $content = 'undefined';
 
 	function __construct() {

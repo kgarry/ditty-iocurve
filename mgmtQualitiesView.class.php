@@ -2,7 +2,7 @@
 
 require_once("point.class.php");
 
-class IocMgmtQualitiesView extends Point {
+class MgmtQualitiesView extends Point {
 	public $content = 'undefined';
 
 	function __construct() {
@@ -53,9 +53,9 @@ GROUP BY pq.pkPQual
 *@param		args = list of search filters??
 ***/
 	private function renderQuality($o) {
-		$details = '<span style="color: blue; cursor: pointer" ' .
+		$details = '<span style="color: blue; font-weight: bold; cursor: pointer" ' .
 			'onclick="$(\'#' . $this->defineQualityDetailDomID($o['pkPQual']) . '\').toggle();">' .
-			'[details]</span>';
+			'[ ? ] </span>';
 
 		$ret = '<div style="border-bottom: black solid thin; width: 100%">' .
 			$details . $o['Name'] . $this->renderQualityDetail($o) . 
@@ -69,8 +69,9 @@ GROUP BY pq.pkPQual
 ***/
 	private function renderQualityDetail($o) {
 		$ret = '<div id="' . $this->defineQualityDetailDomID($o['pkPQual']) . '" style="display: none; padding-left: 8px; background-color: #f5;">' .
-			'#Types: ' . $o['numTypes'] . ' (' . $o['typeList'] . ')' .
-			'<br>#Points: ' . $o['numPoints'] . 
+			'<span style="font-weight: bold">#Types:</span> ' . $o['numTypes'] . ' (' . $o['typeList'] . ')' .
+			'<br><span style="font-weight: bold">#Points:</span> ' . $o['numPoints'] . 
+			'<br><span style="font-weight: bold">[ <a href="google.com" target="_blank">edit</a> ]</span> ' . 
 			'</div>';
 
 		return $ret;

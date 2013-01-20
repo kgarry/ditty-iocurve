@@ -1,8 +1,8 @@
 <?php
 
-//require_once("IocMgmtQualitiesView.class.php"); //fixme use defined path
+//require_once("mgmtQualitiesView.class.php"); //fixme use defined path
 
-class IocMgmtView {
+class MgmtView {
 	function __construct() {
 //		$this->loadTop();
 		$this->loadHeader();
@@ -16,7 +16,7 @@ class IocMgmtView {
 		$this->type = $val;
 	}
 
-	public function drawIocMgmtView() {
+	public function drawMgmtView() {
 		// ret
 		return 
 //			$this->top .
@@ -32,17 +32,14 @@ class IocMgmtView {
 		switch ($this->type) {
 			case 'points':
 				//fixme use defined path
-				require_once("IocMgmtPointsView.class.php"); 	
 				$this->loadPointsContent();
 				break;
 			case 'types':
 				//fixme use defined path
-				require_once("IocMgmtTypesView.class.php"); 	
                                 $this->loadTypesContent();
                                 break;
 			case 'qualities':
 				//fixme use defined path
-				require_once("IocMgmtQualitiesView.class.php"); 	
                                 $this->loadQualitiesContent();
                                 break;
 			
@@ -55,17 +52,20 @@ class IocMgmtView {
 	}
 
 	private function loadPointsContent() {
-		$pv = new IocMgmtPointsView();
+		require_once("mgmtPointsView.class.php"); 	
+		$pv = new MgmtPointsView();
 		$this->content = $pv->pointList;
 	}
 
 	private function loadTypesContent() {
-		$pv = new IocMgmtTypesView();
+		require_once("mgmtTypesView.class.php"); 	
+		$pv = new MgmtTypesView();
 		$this->content = $pv->typeList;
         }
 
 	private function loadQualitiesContent() {
-		$pv = new IocMgmtQualitiesView();
+		require_once("mgmtQualitiesView.class.php"); 	
+		$pv = new MgmtQualitiesView();
 		$this->content = $pv->qualitiesList;
         }
 
