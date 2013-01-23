@@ -42,16 +42,9 @@ SET name = '" . $name . "',
 * @todo		should this be just loadPoint and be able to "target" it via multipl ways (id, PType-intersect+name
 * @todo		do the mass volume version of this after convert to IOC->ETL->noSQL
 ***/
-  function loadPointById($ID, $verbose=false) {
-	if ($verbose === false) {
-		$q = "
-SELECT P.pkP, P.name, P.mode, P.dateCreated
-FROM P
-WHERE pkP = " . $ID;
-	}
-	else {
-		// TODO will need to set max group_concat_length (pref @server)
-		$q = "
+  function loadPointById($ID) {
+	// TODO will need to set max group_concat_length (pref @server)
+	$q = "
 SELECT P.pkP as ID, P.name, P.mode, P.dateCreated,
  GROUP_CONCAT(DISTINCT P_Par.pkP SEPARATOR '[***]') AS arr_ParentIDS, 
  GROUP_CONCAT(DISTINCT P_Par.name SEPARATOR '[***]') AS arr_ParentNames,
@@ -80,15 +73,12 @@ FROM P
  LEFT JOIN PQual ON PQual.pkPQual = PLPQual.fkPQual
 WHERE P.pkP = " . $ID . "
 GROUP BY P.pkP";
-	}
+	
 //exit($q);	
 
 	$r = $this->conn->query($q);
 
-	$ret = $r->fetch_object();
-	$this->ID = $ret->ID;
-
-	return $ret;	
+	return $r->fetch_assoc();
   }
 
 /***
