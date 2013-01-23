@@ -32,7 +32,7 @@ SET name = '" . $name . "'
  , dateCreated = UNIX_TIMESTAMP()";
 	$this->conn->query($i);
 
-	$this->ID = $this->conn->insert_id;
+	$this->Id = $this->conn->insert_id;
   }
 
 /***
@@ -51,14 +51,14 @@ WHERE MACHINE = '" . $MACHINE . "'";
 	}
 
 /***
-* requires ID in object currently
+* requires Id in object currently
 * 
 ***/
   function loadType() {
     $q = "
 SELECT name, description, mode, dateCreated
 FROM ioc.PType
-WHERE pkPType = " . $this->ID;
+WHERE pkPType = " . $this->Id;
     $r = $this->conn->query($q);
     $ret = $r->fetch_object($r);
 
@@ -72,7 +72,7 @@ WHERE pkPType = " . $this->ID;
     $u = "
 UPDATE PType
 SET name = '" . $new_name . "'
-WHERE pkP = " . $this->ID;
+WHERE pkP = " . $this->Id;
 
     $this->conn->query($u);
   }
@@ -84,7 +84,7 @@ WHERE pkP = " . $this->ID;
     $u = "
 UPDATE PType
 SET lgDesc = '" . $new_desc . "'
-WHERE pkP = " . $this->ID;
+WHERE pkP = " . $this->Id;
 
     $this->conn->query($u);
   }
@@ -96,7 +96,7 @@ WHERE pkP = " . $this->ID;
     $u = "
 UPDATE PType
 SET mode = b'1'
-WHERE pkPType = " . $this->ID;
+WHERE pkPType = " . $this->Id;
 
     $this->conn->query($u);
   }
@@ -109,7 +109,7 @@ WHERE pkPType = " . $this->ID;
   function qualifyType($fkQual) {
     $i = "
 INSERT INTO ioc.PQualLPType
-SET fkPType = " . $this->ID . "
+SET fkPType = " . $this->Id . "
 , fkPQual = " . $fkQual . "
 , dateCreated = UNIX_TIMESTAMP()";
 
@@ -117,13 +117,13 @@ SET fkPType = " . $this->ID . "
   }
 
 /***
-* requires remove_quality_ID prior to call
+* requires remove_quality_Id prior to call
 ***/
   function disqualifyType($fkQual) {
     $u = "
 UPDATE ioc.PQualLPType
 SET mode = b'1'
-WHERE fkPType = " . $this->ID . "
+WHERE fkPType = " . $this->Id . "
  AND fkPQual = " . $fkQual;
 
     $this->conn->query($u);
@@ -134,13 +134,13 @@ WHERE fkPType = " . $this->ID . "
 ***/
 	public function findTypeByName($name) {
 		$q = "
-SELECT pkPType as ID
+SELECT pkPType as Id
 FROM PType
 WHERE MACHINE = '" . $name . "'";
 		$this->conn->query($q);
 		$ret = $r->fetch_object($r);
 
-		return $ret->ID;
+		return $ret->Id;
 	}
 }
 

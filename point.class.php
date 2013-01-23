@@ -3,7 +3,7 @@
 require_once("iocurve.class.php");
 
 class Point extends IOCurve {
-//  public $ID;
+//  public $Id;
 //  public $children = array();
 //  public $parents = array();
 //  public $name;
@@ -28,34 +28,34 @@ SET name = '" . $name . "',
 	";
 	$this->conn->query($i);
 
-	$this->ID = $this->conn->insert_id;
+	$this->Id = $this->conn->insert_id;
 
 	// FIXME save to NOSQL as well, adding pkP as _id
 	//$this->saveNosqlPoint();
 
-	return $this->ID;
+	return $this->Id;
   }
 
 /***
 * @desc         load a point
-* @param	$ID(pkP), $verbose(true/false)
+* @param	$Id(pkP), $verbose(true/false)
 * @todo		should this be just loadPoint and be able to "target" it via multipl ways (id, PType-intersect+name
 * @todo		do the mass volume version of this after convert to IOC->ETL->noSQL
 ***/
-  function loadPointById($ID) {
+  function loadPointById($Id) {
 	// TODO will need to set max group_concat_length (pref @server)
 	$q = "
-SELECT P.pkP as ID, P.name, P.mode, P.dateCreated,
- GROUP_CONCAT(DISTINCT P_Par.pkP SEPARATOR '[***]') AS arr_ParentIDS, 
+SELECT P.pkP as Id, P.name, P.mode, P.dateCreated,
+ GROUP_CONCAT(DISTINCT P_Par.pkP SEPARATOR '[***]') AS arr_ParentIdS, 
  GROUP_CONCAT(DISTINCT P_Par.name SEPARATOR '[***]') AS arr_ParentNames,
- GROUP_CONCAT(DISTINCT P_Child.pkP SEPARATOR '[***]') AS arr_ChildIDS, 
+ GROUP_CONCAT(DISTINCT P_Child.pkP SEPARATOR '[***]') AS arr_ChildIdS, 
  GROUP_CONCAT(DISTINCT P_Child.name SEPARATOR '[***]') AS arr_ChildNames,
  GROUP_CONCAT(DISTINCT PType.MACHINE SEPARATOR '[***]') AS arr_PTypeMACHINES, 
  GROUP_CONCAT(DISTINCT PType.name SEPARATOR '[***]') AS arr_PTypeNames,
  GROUP_CONCAT(DISTINCT PQual.name SEPARATOR '[***]') AS arr_PQualNames, 
- GROUP_CONCAT(DISTINCT PQual.pkPQual SEPARATOR '[***]') AS arr_PQualIDS,
+ GROUP_CONCAT(DISTINCT PQual.pkPQual SEPARATOR '[***]') AS arr_PQualIdS,
  GROUP_CONCAT(DISTINCT PQual2.name SEPARATOR '[***]') AS arr_PQualNamesViaPType, 
- GROUP_CONCAT(DISTINCT PQual2.pkPQual SEPARATOR '[***]') AS arr_PQualIDSViaPType
+ GROUP_CONCAT(DISTINCT PQual2.pkPQual SEPARATOR '[***]') AS arr_PQualIdSViaPType
 
 FROM P
  LEFT JOIN PLP PLP_Par ON PLP_Par.fkP2 = P.pkP
@@ -71,7 +71,7 @@ FROM P
  
  LEFT JOIN PLPQual ON PLPQual.fkP = P.pkP
  LEFT JOIN PQual ON PQual.pkPQual = PLPQual.fkPQual
-WHERE P.pkP = " . $ID . "
+WHERE P.pkP = " . $Id . "
 GROUP BY P.pkP";
 	
 //exit($q);	
@@ -83,21 +83,21 @@ GROUP BY P.pkP";
 
 /***
 * @desc         load a point
-* @param	$ID(pkP), $verbose(true/false)
+* @param	$Id(pkP), $verbose(true/false)
 * @todo		should this be just loadPoint and be able to "target" it via multipl ways (id, PType-intersect+name
 * @todo		do the mass volume version of this after convert to IOC->ETL->noSQL
 ***/
-  function lookPointById($ID) {
+  function lookupPointById($Id) {
 	$q = "
 SELECT P.pkP, P.name, P.mode, P.dateCreated
 FROM P
-WHERE pkP = " . $ID;
+WHERE pkP = " . $Id;
 	$r = $this->conn->query($q);
 
         $result = $r->fetch_assoc();
 
 	$ret = new Point();
-        $ret->ID = $ret['pkP'];
+        $ret->Id = $ret['pkP'];
         $ret->name = $ret['name'];
         $ret->dateCreated = $ret['dateCreated'];
 
@@ -109,9 +109,9 @@ WHERE pkP = " . $ID;
 /***
 * 
 ***/
-	public function loadPointIDListByType($filter) {
+	public function loadPointIdListByType($filter) {
 		$q = "
-SELECT P.pkP as ID 
+SELECT P.pkP as Id 
 FROM P
  JOIN PLPType PLPT ON PLPT.fkP = P.pkP
  JOIN PType ON PType.pkPType = PLPT.fkPType
@@ -126,9 +126,9 @@ GROUP BY P.pkP";
 /***
 * @todo		add MACHINE field to table
 ***/
-	public function loadPointIDListByQual($PQualMName) {
+	public function loadPointIdListByQual($PQualMName) {
 		$q = "
-SELECT P.pkP as ID 
+SELECT P.pkP as Id 
 FROM P
  JOIN PLPQual PLPQ ON PLPQ.fkP = P.pkP
  JOIN PQual ON PQual.pkPQual = PLPQ.fkPQual
@@ -146,27 +146,27 @@ GROUP BY P.pkP
 
 /***
 * @desc         read point from NOSQL storage
-* @param	$ID originates from ioc.P.pkP_
-* @fixme	this looks outside the current object (could defult to $this->ID)
+* @param	$Id originates from ioc.P.pkP_
+* @fixme	this looks outside the current object (could defult to $this->Id)
 ***/
-/*	function readNosqlPointByID($ID=null) {
-		if ($ID === null) { 
-			$ID = $this->ID; 
+/*	function readNosqlPointById($Id=null) {
+		if ($Id === null) { 
+			$Id = $this->Id; 
 		}
-		$ID = (string) $ID;
+		$Id = (string) $Id;
 
-		//$item = $this->nosql->P->find( array('_id' => new MongoId($this->ID)) );
-		$item = $this->nosql->P->findOne( array('pkP' => $ID) );
+		//$item = $this->nosql->P->find( array('_id' => new MongoId($this->Id)) );
+		$item = $this->nosql->P->findOne( array('pkP' => $Id) );
 
 		return $item;
 	}*/
 
 /***
 * @desc         save point to NOSQL storage
-* @param        $ID originates from ioc.P.pkP_
+* @param        $Id originates from ioc.P.pkP_
 ***/
 /*        function saveNosqlPoint() {
-		$item = $this->loadPointByID($this->ID, true);
+		$item = $this->loadPointById($this->Id, true);
 		foreach ($item as $key => $val) {
 			if (substr($key, 0, 4) == 'arr_') {
 				$val = explode('[***]', $val);
@@ -200,7 +200,7 @@ GROUP BY P.pkP
 		$u = "
 UPDATE P
 SET name = '" . $new_name . "'
-WHERE pkP = " . $this->ID;
+WHERE pkP = " . $this->Id;
 
 		$this->conn->query($u);
 		$this->saveNosqlPoint();
@@ -213,7 +213,7 @@ WHERE pkP = " . $this->ID;
 		$u = "
 UPDATE P 
 SET mode = b'1' 
-WHERE pkP = " . $this->ID;
+WHERE pkP = " . $this->Id;
 		$this->conn->query($u);
 	}
 
@@ -225,7 +225,7 @@ WHERE pkP = " . $this->ID;
 		$q = "
 SELECT fkP2 
 FROM PLP
-WHERE fkP = " . $this->ID . "
+WHERE fkP = " . $this->Id . "
 ORDER BY dateCreated ASC";
 #print("findChildrenPoint: ".$q."\r");
 		$r = $this->conn->query($q);
@@ -242,7 +242,7 @@ ORDER BY dateCreated ASC";
     $q = "
 SELECT fkP
 FROM PLP
-WHERE fkP2 = " . $this->ID . "
+WHERE fkP2 = " . $this->Id . "
 ORDER BY dateCreated ASC";
     $r = $this->conn->query($q);
 
@@ -254,11 +254,11 @@ ORDER BY dateCreated ASC";
 /***
 * FIXME
 ***/
-  function adoptPoint($new_child_ID) {
+  function adoptPoint($new_child_Id) {
     $i = "
 INSERT INTO PLP
-SET fkP = " . $this->ID . "
-, fkP2 = " . $new_child_ID . "
+SET fkP = " . $this->Id . "
+, fkP2 = " . $new_child_Id . "
 , dateCreated = UNIX_TIMESTAMP()";
     $r = $this->conn->query($i);
 
@@ -270,26 +270,26 @@ SET fkP = " . $this->ID . "
 /***
 * FIXME
 ***/
-	function reverseAdoptPoint($new_parent_ID) {
+	function reverseAdoptPoint($new_parent_Id) {
 		$i = "
 INSERT INTO PLP
-SET fkP = " . $new_parent_ID . "
-, fkP2 = " . $this->ID . "
+SET fkP = " . $new_parent_Id . "
+, fkP2 = " . $this->Id . "
 , dateCreated = UNIX_TIMESTAMP()";
 	
 		$this->conn->query($i);
 	}
 
 /***
-* child_ID must be attached kto object prior
+* child_Id must be attached kto object prior
 * FIXME this needs to look for sub-children and make sure that they are not orpahned without a plan
 ***/
-  function disownPoint($child_ID) {
+  function disownPoint($child_Id) {
     $u = "
 UPDATE PLP 
 SET desactivated = UNIX_TIMESTAMP()
-WHERE fkP = " . $this->ID . "
-AND fkP2 = " . $child_ID;
+WHERE fkP = " . $this->Id . "
+AND fkP2 = " . $child_Id;
 //    $this
 // TODO
   }
@@ -305,7 +305,7 @@ AND fkP2 = " . $child_ID;
 		foreach ($fkType as $item) {
 			$i = "
 INSERT INTO PLPType
-SET fkP = " . $this->ID . "
+SET fkP = " . $this->Id . "
 , fkPType = " . $item . "
 , dateCreated = UNIX_TIMESTAMP()";
 
@@ -325,7 +325,7 @@ SET fkP = " . $this->ID . "
 		foreach ($typeName as $item) {
 			$i = "
 INSERT INTO PLPType
-SET fkP = " . $this->ID . "
+SET fkP = " . $this->Id . "
 , fkPType = (SELECT pkPType FROM PType WHERE MACHINE = '" . $item . "')
 , dateCreated = UNIX_TIMESTAMP()";
 			$this->conn->query($i);
@@ -347,7 +347,7 @@ SET fkP = " . $this->ID . "
                 foreach ($fkType as $item) {
                         $pt = new PointType();
 			$pt->findPointTypeByName($item);
-			$this->typifyPoint($pt->ID);
+			$this->typifyPoint($pt->Id);
 		}
         }
 
@@ -358,7 +358,7 @@ SET fkP = " . $this->ID . "
                 $u = "
 UPDATE PLPType
 SET mode = b'1' 
-WHERE fkP = " . $this->ID . "
+WHERE fkP = " . $this->Id . "
 , fkPType = " . $fkType;
 
                 $this->conn->query($u);
@@ -371,7 +371,7 @@ WHERE fkP = " . $this->ID . "
         function qualifyPoint($fkQual) {
                 $i = "
 INSERT INTO PLPQual
-SET fkP = " . $this->ID . "
+SET fkP = " . $this->Id . "
 , fkPQual = " . $fkQual . "
 , dateCreated = UNIX_TIMESTAMP()";
 
@@ -385,7 +385,7 @@ SET fkP = " . $this->ID . "
         function qualifyPointByName($item, $val) {
 		$i = "
 INSERT INTO PLPQual
-SET fkP = " . $this->ID . "
+SET fkP = " . $this->Id . "
  , fkPQual = (SELECT pkPQual FROM PQual WHERE MACHINE = '" . $item . "')
  , value = '" . $val . "'
  , dateCreated = UNIX_TIMESTAMP()";
@@ -404,7 +404,7 @@ SET fkP = " . $this->ID . "
                 $u = "
 UPDATE PLPQual
 SET mode = b'1'
-WHERE fkP = " . $this->ID . "
+WHERE fkP = " . $this->Id . "
 , fkPQual = " . $fkQual;
 
                 $this->conn->query($u);

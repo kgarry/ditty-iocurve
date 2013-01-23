@@ -38,7 +38,7 @@ SET name = '" . $name . "',
  dateCreated = UNIX_TIMESTAMP()";
 	$this->conn->query($i);
 
-	$this->ID = $this->conn->insert_id;
+	$this->Id = $this->conn->insert_id;
 
 	// save to nosql as well
 //	$this->nosql->PQual->save( $this->loadQuality() );
@@ -62,14 +62,14 @@ WHERE MACHINE = '" . $MACHINE . "'";
 
 
 /***
-* @desc		requires ID in object currently
+* @desc		requires Id in object currently
 * 
 ***/
 	function loadQuality() {
 		$q = "
 SELECT name, smDesc, mode, dateCreated
 FROM PQual
-WHERE pkPQual = " . $this->ID;
+WHERE pkPQual = " . $this->Id;
 		$r = $this->conn->query($q);
 		$ret = $r->fetch_assoc();
 
@@ -98,7 +98,7 @@ WHERE pkP = " . $this->pkP;
 		$u = "
 UPDATE PQual
 SET mode = b'1'
-WHERE pkPQual = " . $this->ID;
+WHERE pkPQual = " . $this->Id;
 		$this->conn->query($u);
 
 		return true;
