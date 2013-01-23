@@ -46,13 +46,13 @@ $instrSeq = new Quality();
 echo "\t ... making types\n";
 $song = new Type();
 	$song->registerType("Song", "SONG");
-	$song->qualifyType($timeSignature->ID);  
-	$song->qualifyType($tempo->ID);
-	$song->qualifyType($author->ID);
+	$song->qualifyType($timeSignature->Id);  
+	$song->qualifyType($tempo->Id);
+	$song->qualifyType($author->Id);
 
 $songComplement = new Type();
 	$song->registerType("Song Complement", "SONG_COMPLEMENT");
-	$song->qualifyType($instrSeq->ID);
+	$song->qualifyType($instrSeq->Id);
 
 $user = new Type();
 	$user->registerType("User", "USER");
@@ -62,16 +62,16 @@ $instrument = new Type();
 
 $posInstrument = new Type();
 	$posInstrument->registerType("Position Instrument", "POSITION_INSTRUMENT");
-	$posInstrument->qualifyType($position->ID);
+	$posInstrument->qualifyType($position->Id);
 
 $tone = new Type();
 	$tone->registerType("Tone", "TONE");
-	$tone->qualifyType($soundfile->ID);
+	$tone->qualifyType($soundfile->Id);
 
 $note = new Type();
 	$note->registerType("Note", "NOTE");
-	$note->qualifyType($volume->ID);
-	$note->qualifyType($location->ID);
+	$note->qualifyType($volume->Id);
+	$note->qualifyType($location->Id);
 
 
 // tones
@@ -91,10 +91,10 @@ $n = new Point();
 	$n->typifyPointByTypeName("INSTRUMENT");
 	$n->qualifyPointByName("SOUND_FILE", "sounds/cello");
 	
-	$PList = $n->loadPointIDListByType("TONE");
+	$PList = $n->loadPointIdListByType("TONE");
 	for ($i=0; $item = $PList->fetch_assoc(); $i++) {
-		print("\tadopting ".$item['ID']."\r");
-		$n->adoptPoint($item['ID']);
+		print("\tadopting ".$item['Id']."\r");
+		$n->adoptPoint($item['Id']);
 	}
 	
 

@@ -54,7 +54,7 @@ GROUP BY pq.pkPQual
 ***/
 	private function renderQuality($o) {
 		$details = '<span style="color: blue; font-weight: bold; cursor: pointer" ' .
-			'onclick="$(\'#' . $this->defineQualityDetailDomID($o['pkPQual']) . '\').toggle();">' .
+			'onclick="$(\'#' . $this->defineQualityDetailDomId($o['pkPQual']) . '\').toggle();">' .
 			'[ ? ] </span>';
 
 		$ret = '<div style="border-bottom: black solid thin; width: 100%">' .
@@ -68,7 +68,7 @@ GROUP BY pq.pkPQual
 *
 ***/
 	private function renderQualityDetail($o) {
-		$ret = '<div id="' . $this->defineQualityDetailDomID($o['pkPQual']) . '" style="display: none; padding-left: 8px; background-color: #f5;">' .
+		$ret = '<div id="' . $this->defineQualityDetailDomId($o['pkPQual']) . '" style="display: none; padding-left: 8px; background-color: #f5;">' .
 			'<span style="font-weight: bold">#Types:</span> ' . $o['numTypes'] . ' (' . $o['typeList'] . ')' .
 			'<br><span style="font-weight: bold">#Points:</span> ' . $o['numPoints'] . 
 			'<br><span style="font-weight: bold">[ <a href="google.com" target="_blank">edit</a> ]</span> ' . 
@@ -77,7 +77,7 @@ GROUP BY pq.pkPQual
 		return $ret;
 	}
 
-	private function defineQualityDetailDomID($id) {
+	private function defineQualityDetailDomId($id) {
 		$ret = "qualDetail_" . $id;
 		
 		return $ret;		
