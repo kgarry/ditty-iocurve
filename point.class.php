@@ -52,7 +52,7 @@ WHERE pkP = " . $ID;
 	else {
 		// TODO will need to set max group_concat_length (pref @server)
 		$q = "
-SELECT P.pkP, P.name, P.mode, P.dateCreated,
+SELECT P.pkP as ID, P.name, P.mode, P.dateCreated,
  GROUP_CONCAT(DISTINCT P_Par.pkP SEPARATOR '[***]') AS arr_ParentIDS, 
  GROUP_CONCAT(DISTINCT P_Par.name SEPARATOR '[***]') AS arr_ParentNames,
  GROUP_CONCAT(DISTINCT P_Child.pkP SEPARATOR '[***]') AS arr_ChildIDS, 
@@ -85,8 +85,36 @@ GROUP BY P.pkP";
 
 	$r = $this->conn->query($q);
 
-	return $r->fetch_assoc();
+	$ret = $r->fetch_object();
+	$this->ID = $ret->ID;
+
+	return $ret;	
   }
+
+/***
+* @desc         load a point
+* @param	$ID(pkP), $verbose(true/false)
+* @todo		should this be just loadPoint and be able to "target" it via multipl ways (id, PType-intersect+name
+* @todo		do the mass volume version of this after convert to IOC->ETL->noSQL
+***/
+  function lookPointById($ID) {
+	$q = "
+SELECT P.pkP, P.name, P.mode, P.dateCreated
+FROM P
+WHERE pkP = " . $ID;
+	$r = $this->conn->query($q);
+
+        $result = $r->fetch_assoc();
+
+	$ret = new Point();
+        $ret->ID = $ret['pkP'];
+        $ret->name = $ret['name'];
+        $ret->dateCreated = $ret['dateCreated'];
+
+        return $ret;
+  }
+
+
 
 /***
 * 
