@@ -1,8 +1,9 @@
 <?php
 
-require_once("point.class.php");
+require_once("iocurve.class.php");
+require_once("mgmtView.class.php");
 
-class MgmtQualitiesView extends Point {
+class MgmtQualitiesView extends IOCurve {
 	public $content = 'undefined';
 
 	function __construct() {
@@ -18,16 +19,16 @@ class MgmtQualitiesView extends Point {
 		// check for $this->filters here
 		// if (!empty($this->filters)) { }
 		$q = "
-SELECT pq.pkPQual, pq.Name, 
+SELECT pq.pkPQual as Id, pq.Name, pq.MACHINE, FROM_UNIXTIME(pq.dateCreated) as created,
  count(DISTINCT pqlpt.fkPType) as numTypes, GROUP_CONCAT(DISTINCT pt.name) as typeList,
  count(DISTINCT plpq.fkP) as numPoints
 FROM PQual pq
- LEFT JOIN PQualLPType pqlpt ON pqlpt.fkPQual = pq.pkPQual
+ LEFT JOIN PQualLPType pqlpt ON pqlpt.fkPQual = pq.pkPQual 
  LEFT JOIN PType pt ON pt.pkPType = pqlpt.fkPType
  
  LEFT JOIN PLPQual plpq ON plpq.fkPQual = pq.pkPQual
  
-GROUP BY pq.pkPQual
+GROUP BY Id
 ";
 		$r = $this->conn->query($q);
 
@@ -54,7 +55,7 @@ GROUP BY pq.pkPQual
 ***/
 	private function renderQuality($o) {
 		$details = '<span style="color: blue; font-weight: bold; cursor: pointer" ' .
-			'onclick="$(\'#' . $this->defineQualityDetailDomId($o['pkPQual']) . '\').toggle();">' .
+			'onclick="$(\'#' . $this->defineQualityDetailDomId($o['Id']) . '\').toggle();">' .
 			'[ ? ] </span>';
 
 		$ret = '<div style="border-bottom: black solid thin; width: 100%">' .
@@ -68,10 +69,11 @@ GROUP BY pq.pkPQual
 *
 ***/
 	private function renderQualityDetail($o) {
-		$ret = '<div id="' . $this->defineQualityDetailDomId($o['pkPQual']) . '" style="display: none; padding-left: 8px; background-color: #f5;">' .
-			'<span style="font-weight: bold">#Types:</span> ' . $o['numTypes'] . ' (' . $o['typeList'] . ')' .
-			'<br><span style="font-weight: bold">#Points:</span> ' . $o['numPoints'] . 
-			'<br><span style="font-weight: bold">[ <a href="google.com" target="_blank">edit</a> ]</span> ' . 
+		$ret = '<div id="' . $this->defineQualityDetailDomId($o['Id']) . '" class="hiddenInfo">' .
+			'<span class="strong">MACHINE_NAME:</span> ' . $o['MACHINE'] . ' (<span class="strong">Created: </span>' . $o['created'] . ')' .
+			'<br><span class="strong">#Types:</span> ' . $o['numTypes'] . ' (' . $o['typeList'] . ')' .
+			'<br>' . MgmtView::makeEditLink("Quality", $o['Id']) . 
+			' ' . MgmtView::makeCloneLink("Quality", $o['Id']) .
 			'</div>';
 
 		return $ret;

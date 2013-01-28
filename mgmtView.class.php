@@ -21,7 +21,7 @@ class MgmtView {
 		return 
 //			$this->top .
 			$this->header .
-			$this->menu .
+//			$this->menu .
 			$this->loadContent() . 
 //			$this->footer .
 //			$this->bottom
@@ -54,13 +54,13 @@ class MgmtView {
 	private function loadPointsContent() {
 		require_once("mgmtPointsView.class.php"); 	
 		$pv = new MgmtPointsView();
-		$this->content = $pv->pointList;
+		$this->content = $pv->pointsList;
 	}
 
 	private function loadTypesContent() {
 		require_once("mgmtTypesView.class.php"); 	
 		$pv = new MgmtTypesView();
-		$this->content = $pv->typeList;
+		$this->content = $pv->typesList;
         }
 
 	private function loadQualitiesContent() {
@@ -95,4 +95,11 @@ class MgmtView {
                 $this->footer = '<div style="border: thin black solid; width: 100%">footer</div>';
         }
 
+	public function makeEditLink($type, $Id) {
+		return '<span class="strong">[ <a href="google.com/Edit/'.$type.'/'.$Id.'" target="_blank">edit</a> ]</span> ';
+	}
+
+	public function makeCloneLink($type, $Id) {
+		return '<span class="strong">[ <a href="google.com/Clone/'.$type.'/'.$Id.'" target="_blank">clone</a> ]</span> ';
+	}
 }
