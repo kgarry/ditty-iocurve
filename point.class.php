@@ -164,8 +164,9 @@ GROUP BY P.pkP
 /***
 * @desc         save point to NOSQL storage
 * @param        $Id originates from ioc.P.pkP_
+* @ TODO 	TEST THI SAGAIN
 ***/
-/*        function saveNosqlPoint() {
+        function saveNosqlPoint() {
 		$item = $this->loadPointById($this->Id, true);
 		foreach ($item as $key => $val) {
 			if (substr($key, 0, 4) == 'arr_') {
@@ -188,7 +189,7 @@ GROUP BY P.pkP
 		
 		$this->nosql->P->save($newItem);
 		// todo this will set back the mongoId to the P record
-	}*/
+	}
 
 
 

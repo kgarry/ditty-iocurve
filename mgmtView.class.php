@@ -96,10 +96,10 @@ class MgmtView {
         }
 
 	public function makeEditLink($type, $Id) {
-		return '<span class="strong">[ <a href="google.com/Edit/'.$type.'/'.$Id.'" target="_blank">edit</a> ]</span> ';
+		return '<span class="strong">[ <a href="google.com/edit/'.strtolower($type).'/'.$Id.'" target="_blank">edit</a> ]</span> ';
 	}
 
 	public function makeCloneLink($type, $Id) {
-		return '<span class="strong">[ <a href="google.com/Clone/'.$type.'/'.$Id.'" target="_blank">clone</a> ]</span> ';
+		return '<span class="strong">[ <a href="google.com/clone/'.strtolower($type).'/'.$Id.'" target="_blank">clone</a> ]</span> ';
 	}
 }

@@ -109,12 +109,13 @@ class SearchPointFilter {
 	}
 
 /***
-* @param	str variety (Type, Qual, QualVal)
-* @param	str needleVariety (Id, Name)
+* @param	str searchType (Type, Qual, QualVal)
 * @param	str needle
 * @param	str op (AND, OR, NOT)
 ***/
 	public function register($searchType, $op, $needle) {
+		if (!is_array($needle)) { $needle = array($needle); }
+
 		$this->needle = $needle;
 		$this->op = strtoupper($op);
 		// build parts to determine func
@@ -170,12 +171,12 @@ class SearchPointFilter {
 	$this->makeJoint();	
 	
 	$this->join[] = " 
-JOIN (	SELECT fkP, count(DISTINCT fkP) as qty 
+JOIN (	SELECT fkP as Id, count(DISTINCT fkP) as qty 
 	FROM PLPType 
 	JOIN PType ON PType.pkPType = PLPType.fkPType 
 	 WHERE PType.MACHINE IN ('" . implode($this->needle, "','") . "')
 	GROUP BY fkP " . $this->jointHaving . " 
-) as sub_pt_" . $this->op . " ON sub_pt_" . $this->op . ".fkP = P.pkP ";
+) as sub_pt_" . $this->op . " ON sub_pt_" . $this->op . ".Id = P.pkP ";
   }
 
 /***
@@ -192,11 +193,11 @@ JOIN (	SELECT fkP, count(DISTINCT fkP) as qty
 	$this->makeJoint();	
 
 	$this->join[] = " 
-JOIN (	SELECT fkP, count(DISTINCT fkP) as qty 
+JOIN (	SELECT Id, count(DISTINCT fkP) as qty 
 	JOIN PQual ON PQual.pkPQual = PLPQual.fkPQual 
 	 WHERE PQual.MACHINE IN ('" . implode($this->needle, "','") . "') 
 	GROUP BY fkP " . $this->jointHaving . " 
-) as sub_pq_" . $this->op . " ON sub_pq_" . $this->op . ".fkP = P.pkP ";
+) as sub_pq_" . $this->op . " ON sub_pq_" . $this->op . ".Id = P.pkP ";
   }
 
 /***
@@ -204,6 +205,36 @@ JOIN (	SELECT fkP, count(DISTINCT fkP) as qty
 ***/
   private function addQualIdFilter() {
 
+  }
+
+/***
+* @desc 	join toward parent(s) of the point	
+***/
+  private function addParentFilter() {
+	$this->makeJoint();	
+
+	$this->join[] = " 
+JOIN (	SELECT pkP as Id, count(DISTINCT fkP) as qty 
+	FROM P
+	JOIN PLP ON P.pkP = PLP.fkP 
+	 WHERE PLP.fkP IN ('" . implode($this->needle, "','") . "') 
+	GROUP BY pkP " . $this->jointHaving . " 
+) as sub_parent_" . $this->op . " ON sub_parent_" . $this->op . ".Id = P.pkP ";
+  }
+
+/***
+* @desc 	join toward child(ren) of the point	
+***/
+  private function addChildFilter() {
+	$this->makeJoint();	
+
+	$this->join[] = " 
+JOIN (	SELECT pkP as Id, count(DISTINCT fkP) as qty 
+	FROM P
+	JOIN PLP ON P.pkP = PLP.fkP2 
+	 WHERE PLP.fkP IN ('" . implode($this->needle, "','") . "') 
+	GROUP BY pkP " . $this->jointHaving . " 
+) as sub_child_" . $this->op . " ON sub_child_" . $this->op . ".Id = P.pkP ";
   }
 
 /***
@@ -264,18 +295,23 @@ $f1b->register("QualVal",
 $nf1a->register("Type", array("INSTRUMENT"), "NOT");
 */
 
+
+
+/*
 $f1a = new SearchPointFilter();
-$f1a->register("Type", "OR", array("INSTRUMENT", "SONG"));
+$f1a->register("Type", "OR", "TONE");
+#$f1b->combine(); 
+
+#$f1b = new SearchPointFilter();
+#$f1b->register("Qual", "NOT", array("AUTHOR"));
 #$f1b->combine(); 
 
 $f1b = new SearchPointFilter();
-$f1b->register("Qual", "NOT", array("AUTHOR"));
-#$f1b->combine(); 
+$f1b->register("Child", "OR", array(14, 15));
 
 $f1 = new SearchPoint();
 	$f1->addSearchPointFilter( array($f1a, $f1b), "AND" );
 	$f1->combine();
 print_r($f1->query); print "\n\n";
 #$s1->search(); // db/nosql
-
-
+*/
