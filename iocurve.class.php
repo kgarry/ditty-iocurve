@@ -40,5 +40,11 @@ class IOCurve {
 		}
 
 		return $rs;
+	}
+	
+	public function sanitizeMachineName($name) {
+		$MACHINE = trim(str_replace(" ", "_", strtoupper($name)));
+
+		return $MACHINE;
 	}	
 }

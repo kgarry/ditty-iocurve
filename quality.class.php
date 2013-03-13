@@ -3,52 +3,86 @@
 require_once("iocurve.class.php");
 
 class Quality extends IOCurve {
+  private $max_machine_name_tries = 50;
+
+  function __construct($name=null) {
+    parent::__construct();
+
+    if ($name) { 
+      $this->registerQuality($name);
+    }
+  }
 
 /***
 * @desc		new point quality, registered to IOC
 ***/
   function registerQuality($name=null, $MACHINE=null, $smdesc='undefined') {
-	if ($name === null) {
-		$name = "auto_" . uniqid(date("Ymd_His_"), true);
-	}
-
-	        // handle missing MACHINE value
-        if (empty($MACHINE)) {
-                $MACHINE = str_replace(" ", "_", strtoupper($name));
-        }
-
-        // 50 tries to make a clean machine_name for them
-        $tries = (int) 0;
-        while ($this->preregisterQualName($MACHINE) === false) {
-                $MACHINE .= rand(0,9);
-                $tries++;
-
-                if ($tries > 50) {
-                        return false;
+        if (!is_string($MACHINE)) { // rethink?prot vs int machine names here?
+                if (!$this->preregisterTypeName($name)) {
+                        $this->error_log[] = "registerType operation aborted. Machine name could not be established automatically.";
+                        return;
                 }
         }
-
+        else {
+                $this->MACHINE = $MACHINE;
+        }
 	
 	$i = "
 INSERT INTO PQual 
 SET name = '" . $name . "', 
- MACHINE = '" . $MACHINE . "',
+ MACHINE = '" . $this->MACHINE . "',
  mode = b'1',
  smDesc = '" . $smdesc . "',
  dateCreated = UNIX_TIMESTAMP()";
-	$this->conn->query($i);
+	try {
+		$this->conn->query($i);
+	}
+	catch (Exception $e) {
+		echo 'Caught exception: ',  $e->getMessage(),
+			"\nThe quality ({$name}: {$this->MACHINE}) could not be created.",
+			"\nsql: {$i}\n";
+	}
 
 	$this->Id = $this->conn->insert_id;
 
 	// save to nosql as well
 //	$this->nosql->PQual->save( $this->loadQuality() );
+	return $this->Id;
   }
 
 
 /***
 * @desc         handler to assure unique machine_name
 ***/
-        function preregisterQualName($MACHINE) {
+	private function preregisterTypeName($name, $max_tries=null) {
+                if (empty($max_tries)) { $max_tries = $this->max_machine_name_tries; }
+
+                $tries = (int) 0;
+
+                $MACHINE_BASE = parent::sanitizeMachineName($name);
+
+                while ($tries < $max_tries) {
+//$this->preregisterTypeName($name, $this->max_machine_name_tries) === false) {
+                        $MACHINE = $MACHINE_BASE;
+                        if ($tries > 0) {
+                                $MACHINE .= uniqid();
+                        }
+                        $tries++;
+
+                        $q = "
+SELECT pkPType
+FROM PType
+WHERE MACHINE = '" . $MACHINE . "'";
+                        $r = $this->conn->query($q);
+
+                        if ($r->num_rows < 1) {
+                                $this->MACHINE = $MACHINE;
+                                return true;
+                        }
+                }
+                return false; // failed 50? times :)
+        }
+/*        function preregisterQualName($MACHINE) {
                 $q = "
 SELECT pkPQual
 FROM PQual
@@ -58,7 +92,7 @@ WHERE MACHINE = '" . $MACHINE . "'";
                 if ($r->num_rows > 0) {
                         return false;
                 }
-        }
+        }*/
 
 
 /***
@@ -97,7 +131,7 @@ WHERE pkP = " . $this->pkP;
 	function deactivateQuality() {
 		$u = "
 UPDATE PQual
-SET mode = b'1'
+SET mode = b'0'
 WHERE pkPQual = " . $this->Id;
 		$this->conn->query($u);
 

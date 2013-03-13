@@ -20,13 +20,16 @@ class MgmtPointsView extends IOCurve {
 		// if (!empty($this->filters)) { }
 		$q = "
 SELECT p.pkP as Id, p.Name, FROM_UNIXTIME(p.dateCreated) as created,
- count(DISTINCT plpt.fkPType) as numTypes, GROUP_CONCAT(DISTINCT pt.name) as typeList,
- count(DISTINCT plpq.fkPQual) as numQuals
+ count(DISTINCT plpt.fkPType) as numTypes, 
+ GROUP_CONCAT(DISTINCT concat('<a target=_blank href=./mgmt_view/type/', pt.pkPType,'>', pt.name, '</a>') SEPARATOR ' | ') as typeList,
+ count(DISTINCT plpq.fkPQual) as numQuals,  
+ GROUP_CONCAT(DISTINCT concat('<a target=_blank href=./mgmt_view/qual/', pq.pkPQual,'>', pq.name, '</a>') SEPARATOR ' | ') as qualList
 FROM P p
  LEFT JOIN PLPType plpt ON plpt.fkP = p.pkP
  LEFT JOIN PType pt ON pt.pkPType = plpt.fkPType
 
  LEFT JOIN PLPQual plpq ON plpq.fkP = p.pkP
+ LEFT JOIN PQual pq ON pq.pkPQual = plpq.fkPQual
 
 GROUP BY Id";
 		$r = $this->conn->query($q);
@@ -50,6 +53,7 @@ GROUP BY Id";
 	}
 
 /***
+			'<br><span class="strong">#Types:</span> ' . $o['numTypes'] . ' (' . $o['typeList'] . ')' .
 *@param		args = list of search filters??
 ***/
 	private function renderPoint($o) {
@@ -68,9 +72,18 @@ GROUP BY Id";
 *
 ***/
 	private function renderPointDetail($o) {
+		$types = $quals = '';
+		
+		if ($o['numTypes'] > 0) { 
+			$types = '<br><span class="strong">Types</span> (' . $o['numTypes'] . ') ' . $o['typeList'];
+		}
+		if ($o['numQuals'] > 0) { 
+			$quals = '<br><span class="strong">Qualities</span> (' . $o['numQuals'] . ') ' . $o['qualList'];
+		}
 		$ret = '<div id="' . $this->definePointDetailDomId($o['Id']) . '" class="hiddenInfo">' .
 			'<span class="strong">Created: </span>' . $o['created'] . 
-			'<br><span class="strong">#Types:</span> ' . $o['numTypes'] . ' (' . $o['typeList'] . ')' .
+			$types .
+			$quals . 
 			'<br>' . MgmtView::makeEditLink("Point", $o['Id']) . 
 			' ' . MgmtView::makeCloneLink("Point", $o['Id']) .
 			'</div>';

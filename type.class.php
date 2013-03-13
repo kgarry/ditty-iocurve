@@ -1,53 +1,89 @@
 <?php
 require_once("iocurve.class.php");
 
-
 class Type extends IOCurve {
+  private $max_machine_name_tries = 50;
+
+  function __construct($name=null) {
+    parent::__construct();
+
+    if ($name) {
+      $this->registerType($name);
+    }
+  }
+
 /***
 * @desc		new point quality, registered to IOC
 * @todo		decide how to handle the isCore characteristic - should we look up project type in a global config table?
 ***/
-  function registerType($name, $MACHINE=null, $lgdesc='undefined') {
-	// handle missing MACHINE value
-	if (empty($MACHINE)) {
-		$MACHINE = str_replace(" ", "_", strtoupper($name));
-        }
-	
+  protected function registerType($name, $MACHINE=null, $lgdesc='undefined') {
 	// 50 tries to make a clean machine_name for them
-	$tries = (int) 0;
-	while ($this->preregisterTypeName($MACHINE) === false) {
-		$MACHINE .= rand(0,9);
-		$tries++;
-		
-		if ($tries > 50) { 
-			return false;
+	if (!is_string($MACHINE)) { // rethink?prot vs int machine names here? 
+		if (!$this->preregisterTypeName($name)) {
+			$this->error_log[] = "registerType operation aborted. Machine name could not be established automatically.";
+			return;
 		}
-	}		
-
+	}
+	else {
+		$this->MACHINE = $MACHINE;
+	}
+	
 	$i = "
 INSERT INTO ioc.PType 
-SET name = '" . $name . "'
- , lgDesc = '" . $lgdesc . "'
- , MACHINE = '" . $MACHINE . "'
- , dateCreated = UNIX_TIMESTAMP()";
-	$this->conn->query($i);
+SET name = '" . $name . "',
+  lgDesc = '" . $lgdesc . "',
+  mode = b'1',
+  MACHINE = '" . $this->MACHINE . "',
+  dateCreated = UNIX_TIMESTAMP()";
+
+	try {
+		$this->conn->query($i);
+	}
+	catch (Exception $e) {
+		echo 'Caught exception: ',  $e->getMessage(),
+			"\nThe type Id ({$name}: {$this->MACHINE}) could not be inserted.",
+			"\nsql: {$i}\n";
+	}
+
 
 	$this->Id = $this->conn->insert_id;
+	// save to nosql as well
+//	$this->nosql->PType->save( $this->loadType() );
+
+	return $this->Id;
   }
 
 /***
 * @desc		handler to assure unique machine_name
 ***/
-	function preregisterTypeName($MACHINE) {
-		$q = "
+	private function preregisterTypeName($name, $max_tries=null) {
+		if (empty($max_tries)) { $max_tries = $this->max_machine_name_tries; }
+
+		$tries = (int) 0;
+		
+		$MACHINE_BASE = parent::sanitizeMachineName($name);
+
+		while ($tries < $max_tries) {
+//$this->preregisterTypeName($name, $this->max_machine_name_tries) === false) {
+			$MACHINE = $MACHINE_BASE;
+			if ($tries > 0) { 
+				$MACHINE .= uniqid();
+			} 
+			$tries++;
+		
+			$q = "
 SELECT pkPType
 FROM PType
 WHERE MACHINE = '" . $MACHINE . "'";
-		$r = $this->conn->query($q);
-		
-		if ($r->num_rows > 0) {
-			return false;
+			$r = $this->conn->query($q);
+			
+			if ($r->num_rows < 1) {
+				$this->MACHINE = $MACHINE;
+				return true;
+			}
 		}
+		
+		return false; // failed 50? times :)
 	}
 
 /***
@@ -95,7 +131,7 @@ WHERE pkP = " . $this->Id;
   function deactivateType() {
     $u = "
 UPDATE PType
-SET mode = b'1'
+SET mode = b'0'
 WHERE pkPType = " . $this->Id;
 
     $this->conn->query($u);
@@ -106,25 +142,32 @@ WHERE pkPType = " . $this->Id;
 * could change to allow multi
 * could change to allow by name
 ***/
-  function qualifyType($fkQual) {
-    $i = "
+	function qualifyType($fkQual) {
+		$i = "
 INSERT INTO ioc.PQualLPType
-SET fkPType = " . $this->Id . "
-, fkPQual = " . $fkQual . "
+SET fkPType = {$this->Id}
+, fkPQual = {$fkQual}
 , dateCreated = UNIX_TIMESTAMP()";
 
-    $this->conn->query($i);
-  }
+		try {
+			$this->conn->query($i);
+		}
+		catch (Exception $e) {
+			echo 'Caught exception: ',  $e->getMessage(),
+				"\nThe type Id ({$this->Id}) could not be qualified to quality Id ({$fkQual}).",
+				"\nsql: {$i}\n";
+		}
+	}
 
 /***
-* requires remove_quality_Id prior to call
+* requires target quality_Id for removal prior to call
 ***/
   function disqualifyType($fkQual) {
     $u = "
 UPDATE ioc.PQualLPType
-SET mode = b'1'
-WHERE fkPType = " . $this->Id . "
- AND fkPQual = " . $fkQual;
+SET mode = b'0'
+WHERE fkPType = {$this->Id}
+ AND fkPQual = {$fkQual}";
 
     $this->conn->query($u);
   }
@@ -136,7 +179,7 @@ WHERE fkPType = " . $this->Id . "
 		$q = "
 SELECT pkPType as Id
 FROM PType
-WHERE MACHINE = '" . $name . "'";
+WHERE MACHINE = '" . parent::sanitizeMachineName($name) . "'";
 		$this->conn->query($q);
 		$ret = $r->fetch_object($r);
 

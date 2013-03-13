@@ -12,19 +12,20 @@ class MgmtTypesView extends IOCurve {
 	}
 
 /***
-* @todo		add more
+* @todo		add more, add limit, paging
 ***/
 	private function getTypes() {
 		$q = "
-SELECT pt.pkPType, pt.Name, pt.MACHINE, FROM_UNIXTIME(pt.dateCreated) as created,
- count(DISTINCT pqlpt.fkPQual) as numQuals, GROUP_CONCAT(DISTINCT pt.name) as qualList,
- count(DISTINCT plpt.fkP) as numPoints
+SELECT pt.pkPType as Id, pt.Name, pt.MACHINE, FROM_UNIXTIME(pt.dateCreated) as created,
+ COUNT(DISTINCT plpt.fkP) as numPoints,
+ GROUP_CONCAT(DISTINCT concat('<a target=_blank href=./mgmt_view/point/', p.pkP, '>', p.name, '</a>') SEPARATOR ' | ') as listPoints,
+ COUNT(DISTINCT pq.pkPQual) as numQuals,
+ GROUP_CONCAT(DISTINCT concat('<a target=_blank href=./mgmt_view/qual/', pq.pkPQual,'>', pq.name, '</a>') SEPARATOR ' | ') as listQuals
 FROM PType pt
  LEFT JOIN PQualLPType pqlpt ON pqlpt.fkPType = pt.pkPType
  LEFT JOIN PQual pq ON pq.pkPQual = pqlpt.fkPQual
-
  LEFT JOIN PLPType plpt ON plpt.fkPType = pt.pkPType
-
+ LEFT JOIN P p ON p.pkP = plpt.fkP
 GROUP BY pt.pkPType";
 	
 		return $this->conn->query($q);
@@ -50,7 +51,7 @@ GROUP BY pt.pkPType";
 ***/
 	private function renderType($o) {
 		$details = '<span style="color: blue; font-weight: bold; cursor: pointer" ' .
-			'onclick="$(\'#' . $this->defineTypeDetailDomId($o['pkPType']) . '\').toggle();">' .
+			'onclick="$(\'#' . $this->defineTypeDetailDomId($o['Id']) . '\').toggle();">' .
 			'[ ? ] </span>';
 
 		$ret = '<div style="border-bottom: black solid thin; width: 100%">' .
@@ -64,10 +65,10 @@ GROUP BY pt.pkPType";
 *
 ***/
 	private function renderTypeDetail($o) {
-		$ret = '<div id="' . $this->defineTypeDetailDomId($o['pkPType']) . '" class="hiddenInfo">' .
-			'<span class="strong">MACHINE_NAME:</span> ' . $o['MACHINE'] . ' (' . $o['created'] . ')' .
-			'<br><span class="strong">#Types:</span> ' . $o['numQuals'] . ' (' . $o['qualList'] . ')' .
-			'<br><span class="strong">#Points:</span> ' . $o['numPoints'] . 
+		$ret = '<div id="' . $this->defineTypeDetailDomId($o['Id']) . '" class="hiddenInfo">' .
+			'<span class="strong">MACHINE_NAME:</span> ' . $o['MACHINE'] . ' ' . $o['created'] . ' ' .
+			'<br><span class="strong">Qualities</span> (' . $o['numQuals'] . ') ' . $o['listQuals'] . ' ' .
+			'<br><span class="strong">Points</span> (' . $o['numPoints'] . ') ' . $o['listPoints'] . ' ' .
 			'<br>' . MgmtView::makeEditLink("Type", $o['Id']) .
                         ' ' . MgmtView::makeCloneLink("Type", $o['Id']) .
 			'</div>';

@@ -8,9 +8,14 @@ class Point extends IOCurve {
 //  public $parents = array();
 //  public $name;
 
-  function __construct() {
+  function __construct($name=null) {
     parent::__construct();
+
+    if ($name) {
+      $this->registerPoint($name);
+    }
   }
+
 
 /***
 * @desc 	make a point (::pun_alert())
@@ -296,112 +301,162 @@ AND fkP2 = " . $child_Id;
   }
 
 /***
-* @desc		add a PType to this P
+* @desc		add type(s)
+* @param	$items:mixed int, string or array (of ints & strings)
 ***/
-        function typifyPoint($fkType) {
-		if (!is_array($fkType)) {
-			$fkType = array($fkType);
+        function typify($items) {
+		if (!is_array($items)) {
+			$items = array($items);
 		}
 
-		foreach ($fkType as $item) {
-			$i = "
-INSERT INTO PLPType
-SET fkP = " . $this->Id . "
-, fkPType = " . $item . "
-, dateCreated = UNIX_TIMESTAMP()";
-
-			$this->conn->query($i);
+		foreach ($items as $item) {
+			if (is_int($item)) {
+				$this->typifyById($item);
+			}
+			else {
+				$this->typifyByName($item);
+			}
 		}
 		//$this->saveNosqlPoint();
+	}
+
+/***
+* @desc		add a PType to this P
+***/
+        private function typifyById($item) {
+		$i = "
+INSERT INTO PLPType
+SET fkP = {$this->Id}
+, fkPType = {$item}
+, dateCreated = UNIX_TIMESTAMP()";
+		try {
+                        $this->conn->query($i);
+                }
+                catch (Exception $e) {
+                        echo 'Caught exception: ',  $e->getMessage(),
+                                "\nThe type Id ({$item}) could not be found.",
+                                "\nsql: {$i}\n";
+                }
         }
 
 /***
 * @desc		add a PType to this P by looking up PType machine name
 ***/
-        function typifyPointByTypeName($typeName) {
-		if (!is_array($typeName)) {
-			$typeName = array($typeName);
-		}
-
-		foreach ($typeName as $item) {
-			$i = "
+        private function typifyByName($item) {
+		$i = "
 INSERT INTO PLPType
-SET fkP = " . $this->Id . "
-, fkPType = (SELECT pkPType FROM PType WHERE MACHINE = '" . $item . "')
+SET fkP = {$this->Id}
+, fkPType = (SELECT pkPType FROM PType WHERE MACHINE = '" . 
+		parent::sanitizeMachineName($item) . "')
 , dateCreated = UNIX_TIMESTAMP()";
-			$this->conn->query($i);
-		}
-		//$this->saveNosqlPoint();
+		try {
+                        $this->conn->query($i);
+                }
+                catch (Exception $e) {
+                        echo 'Caught exception: ',  $e->getMessage(),
+                                "\nThe type ({$item}) could not be found.",
+                                "\nsql: {$i}\n";
+                }
         }
 
 /***
 * @desc         add a PType to this P
 * @fixme	handle require class families in a bootstrapper/collection
 ***/
-        function typifyPointByName($fkType) {
+/*        function typifyByName($fkType) {
 		require_once("./pointType.class.php");
 
-                if (!is_array($fkType)) {
-                        $fkType = array($fkType);
-                }
 
                 foreach ($fkType as $item) {
                         $pt = new PointType();
 			$pt->findPointTypeByName($item);
 			$this->typifyPoint($pt->Id);
 		}
-        }
+        }*/
 
 /***
 * @desc         deactivate a PType for this P
+* @todo		need func deTypify
 ***/
-        function detypifyPoint($fkType) {
+        function detypifyPoint($item) {
                 $u = "
 UPDATE PLPType
 SET mode = b'1' 
 WHERE fkP = " . $this->Id . "
-, fkPType = " . $fkType;
+, fkPType = " . $item;
 
                 $this->conn->query($u);
 		//$this->saveNosqlPoint();
         }
 
 /***
-* @desc         add a PType to this P
+* @desc		add quality(s)
+* @param	$items:mixed int, string or array (of ints & strings)
 ***/
-        function qualifyPoint($fkQual) {
-                $i = "
-INSERT INTO PLPQual
-SET fkP = " . $this->Id . "
-, fkPQual = " . $fkQual . "
-, dateCreated = UNIX_TIMESTAMP()";
+        function qualify($items) {
+		if (!is_array($items)) {
+			$items = array($items);
+		}
 
-                $this->conn->query($i);
+		foreach ($items as $item => $val) {
+			if (is_int($item)) {
+				$this->qualifyById($item, $val);
+			}
+			else {
+				$this->qualifyByName($item, $val);
+			}
+		}
 		//$this->saveNosqlPoint();
 	}
 
+
 /***
-* @desc         add a PType to this P
+* @desc		use known Id method
 ***/
-        function qualifyPointByName($item, $val) {
+        private function qualifyById($item) {
 		$i = "
 INSERT INTO PLPQual
 SET fkP = " . $this->Id . "
- , fkPQual = (SELECT pkPQual FROM PQual WHERE MACHINE = '" . $item . "')
+, fkPQual = " . $item . "
+, dateCreated = UNIX_TIMESTAMP()";
+
+		try {
+			$this->conn->query($i);
+		}
+		catch (Exception $e) {
+			echo 'Caught exception: ',  $e->getMessage(), 
+				"\nThe quality Id (".$item.") could not be found.", 
+				"\nsql: ",  $i, "\n";
+		}
+        }
+
+
+/***
+* @desc         use MACHINE NAME  method
+***/
+        private function qualifyByName($item, $val) {
+		$i = "
+INSERT INTO PLPQual
+SET fkP = " . $this->Id . "
+ , fkPQual = (SELECT pkPQual FROM PQual WHERE MACHINE = '" . 
+	parent::sanitizeMachineName($item) . "')
  , value = '" . $val . "'
  , dateCreated = UNIX_TIMESTAMP()";
-
-		// FIXME -- add this trap to the mysqli overload
-                if (!$this->conn->query($i)) {
-			throw new Exception($i . "\n\n" . $this->conn->error);
+                
+		try {
+			$this->conn->query($i);
 		}
-		//$this->saveNosqlPoint();
+		catch (Exception $e) {
+			echo 'Caught exception: ',  $e->getMessage(), 
+				"\nThe quality (".$item.") could not be found.", 
+				"\nsql: ",  $i, "\n";
+		}
         }
 
 /***
 * @desc         deactivate a Quality union for this P
 ***/
-        function disqualifyPoint($fkQual) {
+        function disqualify($fkQual) {
                 $u = "
 UPDATE PLPQual
 SET mode = b'1'
