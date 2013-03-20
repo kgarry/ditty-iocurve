@@ -285,6 +285,7 @@ SET fkP = " . $new_parent_Id . "
 	
 		$this->conn->query($i);
 	}
+        
 
 /***
 * child_Id must be attached kto object prior
@@ -382,8 +383,8 @@ SET fkP = {$this->Id}
                 $u = "
 UPDATE PLPType
 SET mode = b'1' 
-WHERE fkP = " . $this->Id . "
-, fkPType = " . $item;
+WHERE fkP = {$this->Id}
+        AND fkPType = {$item};
 
                 $this->conn->query($u);
 		//$this->saveNosqlPoint();
@@ -416,8 +417,8 @@ WHERE fkP = " . $this->Id . "
         private function qualifyById($item) {
 		$i = "
 INSERT INTO PLPQual
-SET fkP = " . $this->Id . "
-, fkPQual = " . $item . "
+SET fkP = {$this->Id}
+, fkPQual = {$item}
 , dateCreated = UNIX_TIMESTAMP()";
 
 		try {
@@ -437,7 +438,7 @@ SET fkP = " . $this->Id . "
         private function qualifyByName($item, $val) {
 		$i = "
 INSERT INTO PLPQual
-SET fkP = " . $this->Id . "
+        SET fkP = {$this->Id}
  , fkPQual = (SELECT pkPQual FROM PQual WHERE MACHINE = '" . 
 	parent::sanitizeMachineName($item) . "')
  , value = '" . $val . "'
@@ -460,8 +461,8 @@ SET fkP = " . $this->Id . "
                 $u = "
 UPDATE PLPQual
 SET mode = b'1'
-WHERE fkP = " . $this->Id . "
-, fkPQual = " . $fkQual;
+WHERE fkP = {$this->Id}
+, fkPQual = {$fkQual};
 
                 $this->conn->query($u);
 		//$this->saveNosqlPoint();
