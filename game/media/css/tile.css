@@ -1,0 +1,13 @@
+div.tile        {
+	float: left;
+	width: 18px;
+	height: 18px; 
+}
+div.land0       {background-color: black}
+div.land1       {background-color: red}
+div.land2       {background-color: blue}
+div.land3       {background-color: green}
+div.land4       {background-color: orange}
+div.land5       {background-color: yellow}
+div.land6       {background-color: purple}
+div.land7       {background-color: white}

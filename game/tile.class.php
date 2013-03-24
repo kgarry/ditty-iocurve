@@ -5,7 +5,7 @@ require_once("bootstrap.php");
 **/
 class Tile {
 	function __construct($X, $Y) {
-		$this->tileType = 'Blank';
+		$this->tileType = '0';
 		$this->coordX = $X;
 		$this->coordY = $Y;
 		$this->age = 0;

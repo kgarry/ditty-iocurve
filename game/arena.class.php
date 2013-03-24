@@ -5,56 +5,95 @@ require_once("bootstrap.php");
 *
 ***/
 class Arena {
-	function __construct() {
+	function __construct($Id=null) {
 		$scale = 31;
+		define('__ARENA_DEBUG_MODE__', false);
 
-		$this->age = 0;
-		$this->Id = 37; // fixme
-		$this->tileTypes = array('Blue', 'Green', 'Red', 'Yellow');
-		$this->minX = $this->minY = $scale * -1;
-		$this->maxX = $this->maxY = $scale;	
-		$this->log = array();
+		if (!empty($Id) && is_int($Id+0)) { // add routine to verify ownership authority (or maybe not(view mode))
+			$this->load_arena = $this->load($Id);
+//$this->explain($load_arena, $__METHOD__);
 
-		for ($x=1; $x <= $this->maxX; $x++) {
-			for ($y=1; $y <= $this->maxY; $y++) {
-				$this->tiles[$x][$y] = new Tile($x, $y);
-			}	
+		}
+		else {
+			$this->age = 0;
+			$this->Id = null; // will be null until saved
+			$this->tileTypes = array(1, 2, 3, 4, 5, 6, 7);  // can I move this out?
+			$this->minX = $this->minY = $scale * -1;
+			$this->maxX = $this->maxY = $scale;	
+			$this->log = array();
+
+			for ($x=1; $x <= $this->maxX; $x++) {
+				for ($y=1; $y <= $this->maxY; $y++) {
+					$this->tiles[$x][$y] = new Tile($x, $y);
+				}	
+			}
 		}
 	}
 
 	public function getTileTypes() {
 		return $this->tileTypes;
 	}
+
 /**
 *
 **/
-	public function save() {
-
+	public function load($Id=null) {
+		if (empty($Id)) { 
+			$Id = $this->Id;
+		}
+		$p = new Point();
+		$ret = $p->getQualityValue('object', $Id); // this will change after data is broken up
+		$ret = unserialize($ret);
+		
+		return $ret;
 	}
-        
+
+/**
+*
+**/
+	public function data_save() {
+//		$this->explain();
+
+		$p = new Point("Arena_Match_".uniqid());
+		$this->Id = $p->Id;
+		$p->typify("Arena");
+		$payload = serialize($this);
+		$p->qualify(array('object' => $payload));
+	}
+       
+	public function explain($matter=false, $extra_info='') {
+		if (__ARENA_DEBUG_MODE__ !== true) { return; }
+
+		$trace = debug_backtrace();
+		$caller = '';
+		if (!empty($trace[1]['function'])) { 
+			$caller = ((string) $trace[1]['function']);
+		} 
+
+		$info = ' * EXPLAINING * ' . __CLASS__ . '::' . $caller .'-' . $extra_info . "\n";
+		echo '<textarea class="explain">' . $info;
+		if (!$matter) { 
+			echo var_export($this);
+		} else {
+			echo var_export($matter);
+		}
+		echo '</textarea>';
+	}
+ 
 	public function render() {
-//		$renderMatrix = array(); // need to elegantly map tile codes to assets, but not here
-		$out = '';
+		$out = '<div id="arena">';
 		for ($x=1; $x <= $this->maxX; $x++) { // callback hook candidate
                         for ($y=1; $y <= $this->maxY; $y++) {
 				$tile = $this->tiles[$x][$y];
-                                switch ($tile->tileType) {
-					case 'Blue':
-						$applyStyle = 'blue';
-						break;
-					case 'Green':
-						$applyStyle = 'green';
-						break;
-					default:
-						$applyStyle = 'black';
-				}
-				$out .= '<div style="float: left; width: 18px; height: 18px; background-color: ' . $applyStyle . '">' .
+				$out .= '<div class="tile land' . $tile->tileType . '">' .
 					($tile->age + 0) . // no meaning
 					'</div>';
 				
                         }
 			$out .= '<div style="clear: left"></div>';
                 }
+		$out .= '</div>';
+
 		return $out;
 	}
 

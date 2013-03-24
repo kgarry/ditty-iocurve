@@ -8,6 +8,12 @@ class Point extends IOCurve {
 //  public $parents = array();
 //  public $name;
 
+/**
+* @param	$name (string) OR null
+* @desc		If name is null, a base object is instantiated (for searching usually)
+		If name is not null, a new point object is instantiated and written to the data store(s)
+* @todo		Make sub-class for searching points that is lighter
+**/
   function __construct($name=null) {
     parent::__construct();
 
@@ -47,7 +53,15 @@ SET name = '" . $name . "',
 * @todo		should this be just loadPoint and be able to "target" it via multipl ways (id, PType-intersect+name
 * @todo		do the mass volume version of this after convert to IOC->ETL->noSQL
 ***/
-  function loadPointById($Id) {
+  function loadPointById($Id=null) {
+	if (empty($Id)) {
+		$Id = $this->Id;
+	}
+	
+	if (empty($Id)) {
+		return false;  // todo figure out some unified logging/debugging scenario for these
+	}
+
 	// TODO will need to set max group_concat_length (pref @server)
 	$q = "
 SELECT P.pkP as Id, P.name, P.mode, P.dateCreated,
@@ -327,8 +341,8 @@ AND fkP2 = " . $child_Id;
         private function typifyById($item) {
 		$i = "
 INSERT INTO PLPType
-SET fkP = {$this->Id}
-, fkPType = {$item}
+SET fkP = " . $this->Id . "
+, fkPType = " . $item ."
 , dateCreated = UNIX_TIMESTAMP()";
 		try {
                         $this->conn->query($i);
@@ -346,7 +360,7 @@ SET fkP = {$this->Id}
         private function typifyByName($item) {
 		$i = "
 INSERT INTO PLPType
-SET fkP = {$this->Id}
+SET fkP = " . $this->Id . "
 , fkPType = (SELECT pkPType FROM PType WHERE MACHINE = '" . 
 		parent::sanitizeMachineName($item) . "')
 , dateCreated = UNIX_TIMESTAMP()";
@@ -383,8 +397,8 @@ SET fkP = {$this->Id}
                 $u = "
 UPDATE PLPType
 SET mode = b'1' 
-WHERE fkP = {$this->Id}
-        AND fkPType = {$item};
+WHERE fkP = " . $this->Id . "
+        AND fkPType = " . $item;
 
                 $this->conn->query($u);
 		//$this->saveNosqlPoint();
@@ -401,7 +415,7 @@ WHERE fkP = {$this->Id}
 
 		foreach ($items as $item => $val) {
 			if (is_int($item)) {
-				$this->qualifyById($item, $val);
+				$this->qualifyById($item, $val); 
 			}
 			else {
 				$this->qualifyByName($item, $val);
@@ -414,11 +428,12 @@ WHERE fkP = {$this->Id}
 /***
 * @desc		use known Id method
 ***/
-        private function qualifyById($item) {
+        private function qualifyById($item, $val) {
 		$i = "
 INSERT INTO PLPQual
-SET fkP = {$this->Id}
-, fkPQual = {$item}
+SET fkP = " . $this->Id . "
+, fkPQual = " . $item . "
+, value = '" . $val . "'
 , dateCreated = UNIX_TIMESTAMP()";
 
 		try {
@@ -438,7 +453,7 @@ SET fkP = {$this->Id}
         private function qualifyByName($item, $val) {
 		$i = "
 INSERT INTO PLPQual
-        SET fkP = {$this->Id}
+        SET fkP = " . $this->Id . "
  , fkPQual = (SELECT pkPQual FROM PQual WHERE MACHINE = '" . 
 	parent::sanitizeMachineName($item) . "')
  , value = '" . $val . "'
@@ -461,10 +476,79 @@ INSERT INTO PLPQual
                 $u = "
 UPDATE PLPQual
 SET mode = b'1'
-WHERE fkP = {$this->Id}
-, fkPQual = {$fkQual};
+WHERE fkP = " . $this->Id. "
+, fkPQual = " . $fkQual;
 
                 $this->conn->query($u);
 		//$this->saveNosqlPoint();
         }
+
+/**
+* @param	$item (int OR string)
+**/
+	public function getQualityValue($item, $Id=null) {
+		if (empty($Id)) {
+			$Id = $this->Id;
+echo 'using pkP : ' . $Id;
+		}
+		
+		if (is_int($item)) {
+			$ret = $this->getQualityValueById($item, $Id); 
+		}
+		else {
+			$ret = $this->getQualityValueByName($item, $Id);
+		}
+
+		return $ret;
+	}
+
+/**
+* @param	$item (int) pkQual
+		$Id (int) pkP
+* @return	query result
+**/
+	public function getQualityValueById($item, $Id) {
+		$q = "
+SELECT value 
+FROM PLPQual 
+WHERE fkP = " . $Id . "
+ AND fkPQual = " . $item;
+
+		try {
+                        $r = $this->conn->query($q);
+                }
+                catch (Exception $e) {
+                        echo 'Caught exception: ',  $e->getMessage(),
+                                "\nThe quality (".$item.") could not be found.",
+                                "\nsql: ",  $q, "\n";
+                }
+		return $r->fetch_assoc();
+	}
+
+/**
+* @param	$item (string) MACHINE (name) of quality
+		$Id (int) pkP
+**/
+	public function getQualityValueByName($item, $Id) {
+		$q = "
+SELECT value 
+FROM PLPQual 
+WHERE fkPQual = (SELECT pkPQual FROM PQual WHERE MACHINE = '" .
+        parent::sanitizeMachineName($item) . "')
+ AND fkP = " . $Id;
+//echo 'Point::getQualityValueByName --> '.$q.'<hr>';
+		try {
+                        $r = $this->conn->query($q);
+                }
+                catch (Exception $e) {
+                        echo 'Caught exception: ',  $e->getMessage(),
+                                "\nThe quality (".$item.") could not be found.",
+                                "\nsql: ",  $q, "\n";
+                }
+		
+		$ret = $r->fetch_assoc();
+		return $ret['value'];
+	}
+
+
 }

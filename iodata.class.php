@@ -14,8 +14,8 @@ class IOData extends mysqli {
 		parent::__construct($host, $user, $pass, $db);
 
 		// init MongoDB
-		$mongo = new Mongo("mongodb://127.0.0.1:27017");
-		$this->nosql = $mongo->ioc;
+#		$mongo = new Mongo("mongodb://127.0.0.1:27017");
+#		$this->nosql = $mongo->ioc;
 	}
 
 	public function explainStatus() {
@@ -26,19 +26,20 @@ class IOData extends mysqli {
 
 	public function query($query, $resultmode=MYSQLI_STORE_RESULT) {
 		// get lead-in sql statement type
-		$type = strtoupper(substr(trim($query), 0, strpos($query, ' ')));
+#		$type = strtoupper(substr(trim($query), 0, strpos($query, ' ')));
 		
-		switch ($type) {
+#		switch ($type) {
 #			case "SELECT":
 				// do mongo lookup (which fails over to mysqli) [$this->nosql->P->save($newItem);]
 #				$r = $this->nosql->some_table->save($some_data);
 #				break;
-			default:
+#			default:
+//				$q = mysqli_real_escape_string($this, $query);
 				$r = $this->queryRun($query, $resultmode);
 				// $this->nosql->P->save($newItem);
 				#$this->nosql->some_table->save($some_data);
-				break;
-		}
+#				break;
+#		}
 
 		return $r;
 	}	
