@@ -1,2 +1,2 @@
-#arena { border: thin black solid; }
+#arena { border: thin gold solid; display: inline-block; }
 textarea { width: 900px; height: 75px; background-color: black; color: yellow; page-break-after: always; }

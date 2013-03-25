@@ -1,4 +1,7 @@
 <?php
+
+define('__PAGE_DEBUG_MODE__', false);
+
 require_once("../point.class.php");
 
 require_once("arena.class.php");

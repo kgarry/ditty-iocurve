@@ -4,8 +4,36 @@ class Page {
 	function __construct() {
 		$this->assets = array('scripts', 'styles');
 		$this->addScripts('http://code.jquery.com/jquery-latest.min.js');
+		/*if (__PAGE_DEBUG_MODE__) {
+			$this->addScripts('media/js/toggleExplain.js');
+		}*/
+		
 		//$this->addStyles();
 	}
+
+/**
+* $param	$force causes the debug to always display
+**/
+	public function explain($matter=false, $extra_info='', $force=false) {
+		if (!$matter) { return; }
+
+                if (__PAGE_DEBUG_MODE__ !== true && !$force) { return; }
+
+                $trace = debug_backtrace();
+                $caller = '';
+                if (!empty($trace[1]['function'])) {
+                        $caller = ((string) $trace[1]['function']);
+                }
+
+                $info = ' * EXPLAINING * ' . __CLASS__ . '::' . $caller .'-' . $extra_info . "\n";
+                echo '<textarea class="explain">' . $info;
+                if (!$matter) {
+                        echo var_export($this);
+                } else {
+                        echo var_export($matter);
+                }
+                echo '</textarea>';
+        }
 
 	function renderHeader() {
 		$this->renderScripts();

@@ -3,3 +3,5 @@ perspective views
 cycling 'turns'
 hero placement / movement
 chance to spread into adjacent tiles
+
+determine what can be in its own PType/qual set and re-factor for each

@@ -407,6 +407,7 @@ WHERE fkP = " . $this->Id . "
 /***
 * @desc		add quality(s)
 * @param	$items:mixed int, string or array (of ints & strings)
+* todo		refactor to allow for multiple values
 ***/
         function qualify($items) {
 		if (!is_array($items)) {

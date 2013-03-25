@@ -4,12 +4,14 @@ require_once("bootstrap.php");
 *
 **/
 class Tile {
-	function __construct($X, $Y) {
-		$this->tileType = '0';
+	function __construct($Id, $X, $Y) {
+		$this->Id = $Id;
 		$this->coordX = $X;
 		$this->coordY = $Y;
-		$this->age = 0;
+		$this->tileType = 0;
+		$this->age = 1;
 		$this->log = array();
+		$this->neighborInfluence = array();
 	}
 
 	public function load($X, $Y) {
@@ -27,10 +29,9 @@ class Tile {
 /**
 * @desc		Should be triggered to run at beginning of 'turn'
 **/
-	public function age($force=false) {
-		if ($force || $tile->age > 0) {
-                	$tile->age++;
-        	}
+	public function age() {
+               	$this->age++;
+		
 //		$this->log('age('.$tile->age.'): <br>');
 	}
 
@@ -73,12 +74,16 @@ class Tile {
 //		$this->Arena->Tile::load[$coordX][$coordY]->setType();
 	}
 
-	private function considerSpread($tile) {
-		$originTile = $tile->getTileTypeRank($tile);
+/**
+* $param	$neighbor is a adjacent tile
+* todo		see if this should consider influence from anothe rlayer out as well
+**/
+	public function considerNeighborType($neighbor) {
+//		$originTile = $tile->getTileTypeRank($tile);
 //		$neighborTiles = $tile->getNeighbors();
-		foreach ($tile->neighbors as $neighbor) {
-			
-		}
-	}
+		if ($neighbor->tileType == 0) { return; }
+		if ($neighbor->age == 1) { return; }
 
+		$this->neighborInfluence[$neighbor->Id] = rand(0,100); // make rand() into a cool algorithm.. someday
+	}
 }
