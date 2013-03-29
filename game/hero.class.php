@@ -4,17 +4,25 @@ require_once("bootstrap.php");
 *
 **/
 class Hero {
-	function __construct($playerId=null) {
-		if (!empty($playerId)) { 
-			$this->playerId = 73; // fixme
+	function __construct($Id=null) {
+		if (!empty($Id)) { 
+			$this->Id = $Id; // fixme
 		}
+		$this->movement = 2;
+		$this->favoriteTileType = rand(1,6);
 	}
 
 	public function load() {
+		
 		return $this;
 	}
 
 	public function setType($type) {
+	}
+
+	public function setLoc ($x, $y) {
+		$this->coordX = $x;
+		$this->coordY = $y;
 	}
 
 	private function getStat($stat) {

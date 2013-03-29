@@ -1,7 +1,7 @@
 <?php
 
 class Page {
-	function __construct() {
+	public function __construct() {
 		$this->assets = array('scripts', 'styles');
 		$this->addScripts('http://code.jquery.com/jquery-latest.min.js');
 		/*if (__PAGE_DEBUG_MODE__) {
@@ -21,8 +21,8 @@ class Page {
 
                 $trace = debug_backtrace();
                 $caller = '';
-                if (!empty($trace[1]['function'])) {
-                        $caller = ((string) $trace[1]['function']);
+                if (!empty($trace[1]['public function'])) {
+                        $caller = ((string) $trace[1]['public function']);
                 }
 
                 $info = ' * EXPLAINING * ' . __CLASS__ . '::' . $caller .'-' . $extra_info . "\n";
@@ -35,7 +35,7 @@ class Page {
                 echo '</textarea>';
         }
 
-	function renderHeader() {
+	public function renderHeader() {
 		$this->renderScripts();
 		$this->renderStyles();
 		
@@ -48,7 +48,17 @@ class Page {
 		$this->header = implode("\n", $val);
 	} 
 
-	function renderFooter() {
+	public function outClear() {	
+		return '<div class="clearLeft"></div>';
+	}
+
+	public function renderControls() {
+		$val = '<div id="controls" class="controls">' . 
+			'</div>';
+		$this->controls = $val;
+	}
+ 
+	public function renderFooter() {
 		$val = '</body>' . 
 			'</html>';
 		$this->footer = $val;
@@ -57,10 +67,8 @@ class Page {
 /**
 * $todo		add sanity/competeness checks
 **/
-	function addScripts($srcs=null) {
-		if (!is_array($srcs)) {
-			$srcs = array($srcs);
-		}
+	public function addScripts($srcs=null) {
+		if (!is_array($srcs)) { $srcs = array($srcs); }
 
 		foreach ($srcs as $src) {
 			$this->assets['scripts'][] = $src;
@@ -70,12 +78,12 @@ class Page {
 /**
 *
 **/
-//	function removeScripts() { }
+//	public function removeScripts() { }
 
 /*
 * $todo		make updatable explode/implode
 **/
-	function renderScripts() {
+	public function renderScripts() {
 		foreach ($this->assets['scripts'] as $src) {
 			$val[] = '<script type="text/javascript" src="' . $src . '"></script>';
 		}
@@ -86,10 +94,8 @@ class Page {
 /**
 * $todo		add sanity/competeness checks
 **/
-	function addStyles($srcs=null) {
-		if (!is_array($srcs)) {
-			$srcs = array($srcs);
-		}
+	public function addStyles($srcs=null) {
+		if (!is_array($srcs)) { $srcs = array($srcs); }
 
 		foreach ($srcs as $src) {
 			$this->assets['styles'][] = $src;
@@ -99,12 +105,12 @@ class Page {
 /**
 *
 **/
-//	function removeStyles() { }
+//	public function removeStyles() { }
 
 /*
 * $todo		make updatable explode/implode
 **/
-	function renderStyles() {
+	public function renderStyles() {
 		foreach ($this->assets['styles'] as $src) {
 			$val[] = '<link rel="stylesheet" type="text/css" href="' . $src . '">';
 		}
@@ -118,14 +124,16 @@ class Page {
 *
 **/
 class BasicPage extends Page{
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 
 		$this->addStyles(array('media/css/tile.css', 'media/css/arena.css'));
-		$this->addScripts('media/js/reload.js');
+		$this->addScripts('media/js/tile.js');
 
 		$this->reloadDelay = null;
 		$this->renderHeader();
+		$this->outClear();
+		$this->renderControls();
 		$this->renderFooter();
 	}
 }

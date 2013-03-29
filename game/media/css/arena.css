@@ -1,2 +1,6 @@
-#arena { border: thin gold solid; display: inline-block; }
 textarea { width: 900px; height: 75px; background-color: black; color: yellow; page-break-after: always; }
+
+#arena { border: thin gold solid; display: inline-block;}
+
+.clearLeft {clear: left;}
+.controls { background-color: silver; min-width: 120px; float: right;}

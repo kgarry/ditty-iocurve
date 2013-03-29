@@ -11,3 +11,9 @@ div.land4       {background-color: orange}
 div.land5       {background-color: yellow}
 div.land6       {background-color: purple}
 div.land7       {background-color: white}
+
+div.hero	{background-color: gold;}
+div.heroRangeActive	{
+		background: black url(../grfx/graph_tiny.png);
+		background-repeat: repeat;
+}

@@ -6,25 +6,23 @@ require_once("bootstrap.php");
 ***/
 class Arena {
 	function __construct($Id=null) {
-		$scale = 31;
-
+		$this->scale = __ARENA_SCALE__;
 		if (!empty($Id) && is_int($Id+0)) { // add routine to verify ownership authority (or maybe not(view mode))
-			$this->load_arena = $this->load($Id);
+			$this->load_arena = (object) $this->load($Id);
 //Page::explain($load_arena, $__METHOD__);
 
 		}
 		else {
 			$this->age = 1;
 			$this->Id = null; // will be null until saved
-			$this->tileTypes = array(1, 2, 3, 4, 5, 6, 7);  // can I move this out?
-//			$this->minX = $this->minY = $scale * -1;
-			$this->maxX = $this->maxY = $scale;	
+			$this->heroes = array();
 			$this->log = array();
 
 			$counter = 1;
-			for ($x=1; $x <= $this->maxX; $x++) {
-				for ($y=1; $y <= $this->maxY; $y++) {
+			for ($x=1; $x <= $this->scale; $x++) {
+				for ($y=1; $y <= $this->scale; $y++) {
 					$this->tiles[$counter] = new Tile($counter, $x, $y);
+					$this->tiles[$counter]->addClass('land' . __BLANK_TILE__);
 					$counter++;
 				}	
 			}
@@ -32,7 +30,7 @@ class Arena {
 	}
 
 	public function getTileTypes() {
-		return $this->tileTypes;
+		return unserialize(__TILE_TYPES_ARR__);
 	}
 
 /**
@@ -68,19 +66,12 @@ class Arena {
        
 	public function render() {
 		$out = '<div id="arena">';
-		//for ($x=1; $x <= $this->maxX; $x++) { // callback hook candidate
-                  //      for ($y=1; $y <= $this->maxY; $y++) {
 		foreach ($this->tiles as $tile) {
-//				$tile = $this->tiles[$x][$y];
-				$out .= '<div class="tile land' . $tile->tileType . '">' .
-					($tile->age + 0) . // no meaning
-					'</div>';
-				
-                    //    }
-			if ($tile->coordY == $this->maxY) {
+			$out .= $tile->render();
+			
+			if ($tile->coordY == $this->scale) {
 				$out .= '<div style="clear: left"></div>';
 			}
-                //}
 		}
 		$out .= '</div>';
 
@@ -95,21 +86,12 @@ class Arena {
                 $this->log[$severity][] = array('created' => mktime(), 'mssg' => $mssg);
         }
        
-// for now writing splat code for this, later do a iterate_all callback process.. never do the below
-/*	private function ageTiles() {
-		for ($x=1; $x <= $this->maxX; $x++) { // callback hook candidate
-                        for ($y=1; $y <= $this->maxY; $y++) {
-				$this->tiles[$x][$y]->age();
-			}
-		}
-	}*/
-
 // could this live in a decontruct?
 // should this be called from a doAll callback pattern?
 	public function age() {
 		$this->age++;
 		foreach ($this->tiles as $tile) {
-			if ($tile->age > 0) { 
+			if ($tile->type != __BLANK_TILE__) { 
 				$tile->age(); 
 			}
 		}
@@ -117,47 +99,66 @@ class Arena {
 
 /**
 * $return	random ordered result set of tiles by type
+* rename to getTilesByType todo
 **/
-	public function locateTilesByType($tileType=0) {
-		$retTiles = array(); // turn these into a method Arean::locateBlankTiles
+	public function locateTilesByType($type=__BLANK_TILE__) {
+		$retTiles = array(); // turn these into a method Arena::locateBlankTiles
 	        foreach ($this->tiles as $tile) {
-	                if ($tile->tileType == $tileType) {
+	                if ($tile->type == $type) {
         	                $retTiles[] = $tile;
                 	}
 		}
-//Page::explain($retTiles,' !!! ',true);
 	        shuffle($retTiles);
+
 		return $retTiles;
 	}
  
 /**
 * @desc		Locate all adjacent tile objects
-* @param	(Tile) object 
+* @param	(Tile) object, $range (int) default 1 
 * @return	Array of tiel objects
 * @todo		test (none so far)
 **/
-	public function getTileNeighbors($tile) {
+	public function getTileNeighbors($tile, $range=1) {
 		$X = $tile->coordX;
 		$Y = $tile->coordY;
 		$neighborhood = array();
 		
-//		for ($x=$X-1; $this->minX <= $x && $x <= $this->maxX && $x <= $X+1; $x++) {
-//			for ($y=$Y-1; $this->minY <= $y && $y <= $this->maxY && $y <= $Y+1; $y++) {
 		foreach ($this->tiles as $neighbor) {
 				$x = $neighbor->coordX;
 				$y = $neighbor->coordY;
 
 				if (!($x == $X && $y == $Y) &&
-					($X-1 <= $x && $x <= $X+1) &&
-					($Y-1 <= $y && $y <= $Y+1) ) {
+					($X-$range <= $x && $x <= $X+$range) &&
+					($Y-$range <= $y && $y <= $Y+$range) ) {
 //					$this->log("\n...considering ".$x." : ".$y."\n", "notice");
 					$neighborhood[] = $neighbor;
 				}
 		}
-//			}
-//		}
 		return $neighborhood;
+
+	}
+
+/**
+* @param	$x, $y (int) X,Y coordinates
+* @return	(Tile) object 
+**/
+	public function findTile($x, $y) {
+		foreach ($this->tiles as $tile) {
+			if ($tile->coordX == $x && $tile->coordY == $y) {
+				return $tile;
+			}
+		}
+	}
+
+/***
+*
+***/
+	public function addHero($hero) {
+		$this->heroes[] = $hero;
+		if ($hero->coordX > 0 && $hero->coordY > 0) {
+			$tile = $this->findTile($hero->coordX, $hero->coordY);
+			$tile->addClass("hero");
+		}		
 	}
 }
-
-

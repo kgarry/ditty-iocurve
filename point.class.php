@@ -320,9 +320,7 @@ AND fkP2 = " . $child_Id;
 * @param	$items:mixed int, string or array (of ints & strings)
 ***/
         function typify($items) {
-		if (!is_array($items)) {
-			$items = array($items);
-		}
+		if (!is_array($items)) { $items = array($items); }
 
 		foreach ($items as $item) {
 			if (is_int($item)) {
@@ -410,9 +408,7 @@ WHERE fkP = " . $this->Id . "
 * todo		refactor to allow for multiple values
 ***/
         function qualify($items) {
-		if (!is_array($items)) {
-			$items = array($items);
-		}
+		if (!is_array($items)) { $items = array($items); }
 
 		foreach ($items as $item => $val) {
 			if (is_int($item)) {

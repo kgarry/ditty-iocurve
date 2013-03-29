@@ -4,88 +4,134 @@
 // add land mutation
 // add user->environment actions
 
-$s1 = microtime(true);
+$perf['s1'] = microtime(true);
 require_once("bootstrap.php");
 
-//-------
 $page = new BasicPage();
-$minInfluenceThreshhold = 80; // influenceThreshhold shoul dre-calc and increase as age increases
 
-// prepare Arena
+/*********************************************
+* load an EXISTING ARENA from data source
+*********************************************/
 if (!empty($_REQUEST['aid'])) { // todo check if they own the arenaId :)
 	$arena = new Arena($_REQUEST['aid']);
-	$arena = (object) $arena->load_arena;
-//	Page::explain($arena, 'Begin test with _REQ aid',1);
-	// cycle turn, age arena and its tiles
+	$arena = $arena->load_arena;
+Page::explain($arena, 'Begin test with _REQ aid', false);
 	$arena->age();
-	//$arena->eachTile(age); // not sure yet
-//print '<pre>'.var_export($arena->tiles, true) . '</pre>'; exit;
 	
-	$blankTiles = $arena->locateTilesByType(0);
-//Page::explain($blankTiles,' blankTiles ',true);
+	$blankTiles = $arena->locateTilesByType(__BLANK_TILE__);
+Page::explain($blankTiles, ' blankTiles ', false);
 
 	foreach ($blankTiles as $blankTile) {
-//Page::explain($tile, ' tile ',true);
 		$neighbors = $arena->getTileNeighbors($blankTile);
-//Page::explain($tile->neighbors, ' neighbors ',true);
 		foreach ($neighbors as $neighbor) {
 			$blankTile->considerNeighborType($neighbor);
 		}
+
+		if (count($blankTile->neighborInfluence) === 0) { continue; }
+Page::explain($blankTile->neighborInfluence, 'blankTile', false);
+
 		arsort($blankTile->neighborInfluence); 
-//Page::explain($blankTile->neighborInfluence,false,true);
-		$neighborId = key($blankTile->neighborInfluence); // should be on first item, else add reset
+Page::explain($blankTile->neighborInfluence, '..', false);
+		$neighborId = key($blankTile->neighborInfluence); // should be on first item, else add reseti
+
+Page::explain($neighborId, 'key', false);
 		if (!empty($neighborId)) {
 			$neighborInfluence = array_shift($blankTile->neighborInfluence);
-//echo $blankTile->Id . ' @ ' . $neighborId . ' -> ' . $neighborInfluence . '<br>';
-			if ($neighborInfluence > $minInfluenceThreshhold) {
-				$blankTile->setType($arena->tiles[$neighborId]->tileType);
+Page::explain($neighborInfluence, 'neighbor infl', false);
+			if ($neighborInfluence > __MIN_INFLUENCE_THRESHHOLD__) {
+				$neighbor = $arena->tiles[$neighborId];
+				$blankTile->setType($neighbor->type);
+				$blankTile->claim($neighbor); // mutator claiming kill
 				$blankTile->age();
-//$debug05 .= 'Set ' . $blankTile->Id . ' @ ' . $neighborId . ' -> ' . $neighborInfluence . 'to ' . $arena->tiles[$neighborId]->tileType . '<br>';
+				$blankTile->neighborInfluence = null;
 			}
 		}
 	}
 	unset($blankTiles);
 
-//Page::explain($debug05, ' ',true);
-//Page::explain($arena, 'End test with _REQ aid',true);
-	//Page::explain($arena->tiles);
+Page::explain($debug05, ' ', false);
+Page::explain($arena, 'End test with _REQ aid', false);
+Page::explain($arena->tiles);
 }
-// make a new arena instance from scratch
+
+/***********************************************
+* make a NEW ARENA instance from scratch
+***********************************************/
 else {
 	$arena = new Arena();
-	$tileTypes = $arena->getTileTypes();
 
-	// place some random color tile foo
-	$iters = rand(3,10);
-	$numTiles = count($arena->tiles);
-	for ($i=0; $i < $iters; $i++) {
-		$tile = $arena->tiles[rand(1, $numTiles)];
-		$tile->setType($tileTypes[rand(0, count($tileTypes)-1)]);
-	}
+        // place a couple mutating tiles
+//	placeTiles($arena, 2);
+
+	// place 2 heroes
+	placeHeroes($arena, 1, 1);
+	placeHeroes($arena, $arena->scale, $arena->scale);
 }
 
-//       $arena->getTileNeighbors($here);
+/***********************************************
+* PRINT RESULTS and ANALYSIS
+***********************************************/
+renderTest($page, $arena);
+renderTestAnalysis($perf);
 
-// output payload
-echo $page->header; 
-echo $arena->render();
+
+/******************************************************************
+******************************************************************/
+function renderTest($page, &$arena) {
+	echo $page->header;
+	echo $page->controls; 
+	echo $arena->render();
 Page::explain('pre-save Id: '.$arena->Id);
-$arena->data_save();	// this wont live here
+	$arena->data_save();	// this wont live here
 Page::explain('post-save Id: '.$arena->Id);
-// here start the page sub-model for controls
-echo '<br><a href="?aid='.$arena->Id.'">[ Next Turn ]</a> ';
-echo '<a href="./test.php">[ Start New Arena ]</a>';
-echo $page->footer;
-//	echo var_export($arena->log, 1);
+// here start the page sub-model for controls todo
+	echo '<br><a href="?aid='.$arena->Id.'">[ Next Turn ]</a> '; //todo
+	echo '<a href="./test.php">[ Start New Arena ]</a>'; //todo
+	echo $page->footer;
+}
 
+function renderTestAnalysis($perf) {
+	// Analysis
+	$e1 = microtime(true);
+	echo '<hr>';
+Page::explain('Test1 ran in: ' . ($e1-$perf['s1']) . "\nMem peak: actual: " . 
+		(memory_get_peak_usage(true)/1048576) . " mb\n",
+		'forcing debug',
+		true);
+}
 
-//$arena_post_save = $arena->load();
+function placeTiles(&$arena, $iters, $hero=null, $types=null) {
+        $blankTiles = $arena->locateTilesByType();
+        $numTiles = count($blankTiles);
 
-$e1 = microtime(true);
+	if (!is_array($types)) { 
+		$tileTypes = $arena->getTileTypes();
+	}
+        for ($i=0; $i < $iters; $i++) {
+                $tile = $blankTiles[rand(1, $numTiles)];
+//Page::explain($tile, 'tile picked', true);
+		$newType = $tileTypes[rand(1, count($tileTypes)-1)];
+                $tile->setType($newType);
+		$tile->claim($hero);
+Page::explain($tile, 'tile type set to '.$newType, false);
+Page::explain($tile, 'tile picked', false);
+        }
+}
 
+function placeHeroes(&$arena, $x, $y) {
+	$numTiles = count($arena->tiles);
 
-// Analysis
-echo '<hr>';
-Page::explain('Test1 ran in: ' . ($e1-$s1) . "\nMem peak: actual: " . (memory_get_peak_usage(true)/1048576) . " mb\n",
-	'forcing debug',
-	true);
+	$place = $arena->findTile($x, $y);
+//	$place->addClass('hero');
+	$hero = new Hero($x.$y); // todo slacker
+//Page::explain($hero, 'hero:'.$x.':'.$y, true);
+	foreach ($arena->getTileNeighbors($place, $hero->movement) as $inRangeTile) {
+		$inRangeTile->addClass('heroRange');
+	}
+	$hero->setLoc($place->coordX, $place->coordY);
+	$arena->addHero($hero);
+Page::explain($arena, 'hero:'.$x.':'.$y, false);
+	
+	placeTiles($arena, 1, $hero);
+	// set tat tile to hero favorite?? Only if has tile start skill?
+}

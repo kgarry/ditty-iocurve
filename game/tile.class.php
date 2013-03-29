@@ -8,10 +8,11 @@ class Tile {
 		$this->Id = $Id;
 		$this->coordX = $X;
 		$this->coordY = $Y;
-		$this->tileType = 0;
+		$this->type = __BLANK_TILE__;
 		$this->age = 1;
 		$this->log = array();
 		$this->neighborInfluence = array();
+		$this->classes[] = 'tile';
 	}
 
 	public function load($X, $Y) {
@@ -35,39 +36,46 @@ class Tile {
 //		$this->log('age('.$tile->age.'): <br>');
 	}
 
-	public function setType($tileType) {
-		$a = new Arena; // hmm
-		if (!in_array($tileType, $a->tileTypes)) { 
+	public function setType($type) {
+		$tileTypes = Arena::getTileTypes();
+		if (!in_array($type, $tileTypes)) { 
+//Page::explain($tileTypes, 'setType: '.$type.' not in type options???', false);
                     return false; 
                 }
-		$this->tileType = $tileType;
-		$this->age(true);
+		$this->type = $type;
+		$this->removeClass('land', 'begin');
+                $this->addClass(array('land' . $type));	
 		$this->log('setType: <br>');
 	}
 
-	private function getTileTypeRank() {
-		$a = new Arena; // hmm
-		$type = $tile->tileType;
-
-		if (!$type || $type == 'Blank') {
-                    return false;
-		}		
-		else {
-			return array_search($type, $a->tileTypes);
+/*** 
+* Could have objects other than hero claim things.. very interesting 
+* Must have Id value
+***/
+	public function claim($owner_object) {
+		if (is_array($this->claimed['current'])) {
+			$this->claimed[] = $this->claimed['current'];
 		}
+//echo ' =>'. $owner_object->Id .'<br>';
+		$this->claimed['current']['type'] = get_class($owner_object);
+		$this->claimed['current']['Id'] = $owner_object->Id;
+	}
+
+	private function getTileTypeRank() {
+/* * This should do something..? */
 	}
 
 /**
 * @param	$coordX,$coordY(int) coordinate values of terraform spot
 		tiletype
 **/
-	public function terraform($coordX, $coordY, $tileType) {
+	public function terraform($coordX, $coordY, $type) {
 		// these should throw exceptions
-		if ($this->tileType == 'Blank') { 
+		if ($this->type == 'Blank') { 
 			return false; 
 		}
 
-		if (!in_array($tileType, Arena::getTileTypes())) { 
+		if (!in_array($type, Arena::getTileTypes())) { 
 			return false; 
 		}
 
@@ -81,9 +89,71 @@ class Tile {
 	public function considerNeighborType($neighbor) {
 //		$originTile = $tile->getTileTypeRank($tile);
 //		$neighborTiles = $tile->getNeighbors();
-		if ($neighbor->tileType == 0) { return; }
+		if ($neighbor->type == __BLANK_TILE__) { return; }
 		if ($neighbor->age == 1) { return; }
 
 		$this->neighborInfluence[$neighbor->Id] = rand(0,100); // make rand() into a cool algorithm.. someday
+	}
+
+/**
+*
+**/
+	public function render() {
+		$claimed = '';
+		if (@is_array($this->claimed['current'])) {
+			$claimed = '<div style="display: none" onclick="$(this).toggle();">' .
+                        $this->claimed['current']['type'] . '=>' . $this->claimed['current']['Id'] .
+                        '</div>';
+		}
+
+		$out = '<div class="' . $this->renderClass() . '" onclick="$(\'>:first-child\').toggle();">' .
+			$this->age .
+			$claimed .
+			'</div>';
+
+		return $out;
+	}
+	
+/**
+* @todo 	de-dupe?
+**/
+	public function renderClass() {
+		return implode(" ", $this->classes);
+	}
+
+
+/**
+* @param	$class (string) class to remove
+		$type (string) 'exact'/null -> remove exact key, 'begin' remove keys beginning with
+**/
+	public function removeClass($class, $type='exact') {
+		if ($type == 'exact') {
+			$key = array_search($class, $this->classes);
+//echo 'removing '.$class.' on '.$key."\n";
+			$this->classes[$key] = false;
+		}
+		elseif ($type == 'begins') {
+			$len = strlen($class);
+			foreach ($this->classes as $key => $val) {
+				if (substr($val, 0, $len) == $class) {
+		                        $key = array_search($class, $this->classes);
+					$this->classes[$key] = false;
+//echo 'removing '.$class.' on '.$key."\n";
+				}
+			}
+                }
+
+	}
+
+/**
+*
+**/
+	public function addClass($classes) {
+		if (!is_array($classes)) { $classes = array($classes); }
+
+		foreach ($classes as $class) {
+			$this->classes[] = $class;
+//print_r($this->classes); echo '<hr>';
+		}
 	}
 }
