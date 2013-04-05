@@ -16,3 +16,6 @@ require_once("hero.class.php");
 
 # GUI
 require_once("page.class.php");
+
+# composer->rachet->web socketo.me
+require_once('../../composer/vendor/autoload.php');

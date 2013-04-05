@@ -1,9 +1,3 @@
-function showHUD(thisX) {
-	var controls = '<div>Hi I like Dinosaurs!' + 
-		'<div class="closeParent" onclick="$(this).parent().remove()">[Close x]</div></div>';
-	return controls;
-}
-
 $(function(){
 	$('.heroRange, .hero').bind({
 		mouseover: function() {
@@ -16,14 +10,40 @@ $(function(){
 
 	$('.hero').bind({
 		click: function() {
-			$('#controls').append(showHUD());
+			expose('hero-console', '#', renderHeroConsole());
 		}
 	});
-
-	/*$('.closeParent').bind({
-                click: function() {
-                        $(this).parent().remove();
-console.log('innnnnnnnnnnnnnnn');
-                }
-        });*/
 });
+
+// ----- ---- --- -- - GENERIC FUNCS 
+
+/***
+* pass position or let CSS do that?
+* move to game.js?
+***/
+function expose(selector, selectorPre, html) {
+	if ($(selectorPre + selector).length < 1) {
+		$('#arena').after('<div id='+selector+'></div>');
+	}
+	var target = $(selectorPre + selector);
+	target.html(html);
+	var closer = selector + '-close';
+	target.append('<div class="closer" id="'+closer+'">X</div>');
+	
+	var closerSel = '#' + closer;
+	closerSel = $(closerSel);
+	closerSel.bind("click", function(){
+		closerSel.parent().remove();
+	});
+}
+
+// ----- ---- --- -- - SPECIFIC funcs
+function renderHeroConsole() {
+	var html = 'Choose Action: <select id="">' +
+		'<option>Move</option><option>Terraform</option>' +
+		'</select>';
+	html += '<br>';
+	html += '[Movement: 2/2 ] [Terraform: 1/1] [Attack: N/A]';
+
+	return html;
+}

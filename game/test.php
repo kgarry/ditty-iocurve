@@ -49,7 +49,6 @@ Page::explain($neighborInfluence, 'neighbor infl', false);
 	}
 	unset($blankTiles);
 
-Page::explain($debug05, ' ', false);
 Page::explain($arena, 'End test with _REQ aid', false);
 Page::explain($arena->tiles);
 }
@@ -132,6 +131,6 @@ function placeHeroes(&$arena, $x, $y) {
 	$arena->addHero($hero);
 Page::explain($arena, 'hero:'.$x.':'.$y, false);
 	
-	placeTiles($arena, 1, $hero);
+	placeTiles($arena, 3, $hero);
 	// set tat tile to hero favorite?? Only if has tile start skill?
 }

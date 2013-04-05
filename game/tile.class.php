@@ -53,9 +53,11 @@ class Tile {
 * Must have Id value
 ***/
 	public function claim($owner_object) {
-		if (is_array($this->claimed['current'])) {
-			$this->claimed[] = $this->claimed['current'];
-		}
+//		if (!empty($this->claimed['current']) {
+			if (!empty($this->claimed['current']) && is_array($this->claimed['current'])) {
+				$this->claimed[] = $this->claimed['current'];
+			}
+//		}
 //echo ' =>'. $owner_object->Id .'<br>';
 		$this->claimed['current']['type'] = get_class($owner_object);
 		$this->claimed['current']['Id'] = $owner_object->Id;
@@ -101,14 +103,12 @@ class Tile {
 	public function render() {
 		$claimed = '';
 		if (@is_array($this->claimed['current'])) {
-			$claimed = '<div style="display: none" onclick="$(this).toggle();">' .
-                        $this->claimed['current']['type'] . '=>' . $this->claimed['current']['Id'] .
-                        '</div>';
+			$pack = $this->claimed['current']['type'].','.$this->claimed['current']['Id'];
+			$onclick = ' onclick="expose(\'tile-info\', \'#\', \'' . $pack . '\');"';
 		}
 
-		$out = '<div class="' . $this->renderClass() . '" onclick="$(\'>:first-child\').toggle();">' .
+		$out = '<div class="' . $this->renderClass() . '" ' . $onclick . '>' .
 			$this->age .
-			$claimed .
 			'</div>';
 
 		return $out;
