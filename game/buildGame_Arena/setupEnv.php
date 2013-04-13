@@ -21,7 +21,7 @@ $type->qualifyType($qual->Id);
 
 // Map
 $type = new Type('Arena');
-$qual = new Quality("object");
+$qual = new Quality("IOData"); // consider making this forced on all types?
 $type->qualifyType($qual->Id);
 
 $type = new Type('Coord');
@@ -32,7 +32,8 @@ $type->qualifyType($qual->Id);
 $qual = new Quality("Z");
 $type->qualifyType($qual->Id);
 
-$type = new Type('TileType');
+$type = new Type('TileLayer');
+$qual = new Quality("IOData");
 $qual = new Quality("AssetId");
 $type->qualifyType($qual->Id);
 $qual = new Quality("Visible");
@@ -70,7 +71,7 @@ $type->qualifyType($qual->Id);
 /*
 p.Arena 
 	p.Coord
-		p.TileType
+		p.TileLayer
 		p.Hero
 		p.Event
 		p.Prize

@@ -8,11 +8,12 @@ class Arena {
 	function __construct($Id=null) {
 		$this->scale = __ARENA_SCALE__;
 		if (!empty($Id) && is_int($Id+0)) { // add routine to verify ownership authority (or maybe not(view mode))
-			$this->load_arena = (object) $this->load($Id);
+			$this->load_arena = (object) $this->loadSerialized($Id);
 //Page::explain($load_arena, $__METHOD__);
 
 		}
 		else {
+			// TODO load a base template instead
 			$this->age = 1;
 			$this->Id = null; // will be null until saved
 			$this->heroes = array();
@@ -21,11 +22,13 @@ class Arena {
 			$counter = 1;
 			for ($x=1; $x <= $this->scale; $x++) {
 				for ($y=1; $y <= $this->scale; $y++) {
-					$this->tiles[$counter] = new Tile($counter, $x, $y);
+					$this->tiles[$counter] = new Tile(null, $x, $y);
 					$this->tiles[$counter]->addClass('land' . __BLANK_TILE__);
 					$counter++;
 				}	
 			}
+			$this->data_save();
+			$this->__construct($this->Id);
 		}
 	}
 
@@ -34,34 +37,52 @@ class Arena {
 	}
 
 /**
-*
+* @todo		move up to parent?
 **/
-	public function load($Id=null) {
+	public function loadSerialized($Id=null) {
 		if (empty($Id)) { 
 			$Id = $this->Id;
 		}
 		$p = new Point();
-		$ret = $p->getQualityValue('object', $Id); // this will change after data is broken up
+		$ret = $p->getQualityValue('IOData', $Id); // this will change after data is broken up
 		$ret = unserialize($ret);
 		
 		return $ret;
 	}
 
 /**
-*
+* @desc		
+* @param	
 **/
-	public function data_save() {
-//		Page::explain();
+	private function convert_parts_to_references($arrayElemName) {
+		if (empty($this->{$arrayElemName})) { return false; }
+
+		$retArr = array();
+		foreach ($this->{$arrayElemName} as $item) {
+			$item->data_save();
+			$retArr[] = $item->Id;
+		}
+	}
+
+/**
+* @note		re-factor for the new point/old point w/archiving OR old point w/update
+		non-archive would update PLPQual value where P-Id AND PQual->Name
+**/
+	public function data_save($archive=true) {
+		if (!$archive) { return; } // NOT SUPPORTED YET
+
+		$this->convert_parts_to_references("tiles");
 
 		$p = new Point("Arena_Match_".uniqid());
 		$this->Id = $p->Id;
+		// origin_Id is a history trace for full mutation cases..? what about merges [array better?]?
 		if (!empty($this->origin_Id)) { 
 			$this->origin_Id = $this->Id; // better as PQual, or also PQual even?
 		}
 
 		$p->typify("Arena");
 		$payload = serialize($this);
-		$p->qualify(array('object' => $payload));
+		$p->qualify(array('IOData' => $payload));
 	}
        
 	public function render() {

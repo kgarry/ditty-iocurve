@@ -4,21 +4,66 @@ require_once("bootstrap.php");
 *
 **/
 class Tile {
+/***
+* add routine to verify ownership authority (or maybe not(view mode))
+***/
 	function __construct($Id, $X, $Y) {
-		$this->Id = $Id;
-		$this->coordX = $X;
-		$this->coordY = $Y;
-		$this->type = __BLANK_TILE__;
-		$this->age = 1;
-		$this->log = array();
-		$this->neighborInfluence = array();
-		$this->classes[] = 'tile';
+		if (!empty($Id) && is_int($Id+0)) { 
+                        $this->load_arena = (object) $this->loadSerialized($Id);
+		}
+		else {
+//			$this->Id = $Id;
+			$this->coordX = $X;
+			$this->coordY = $Y;
+			$this->type = __BLANK_TILE__;
+			$this->age = 1;
+			$this->log = array();
+			$this->neighborInfluence = array();
+			$this->classes[] = 'tile';
+			// save and re-construct
+			$this->data_save();
+                        $this->__construct($this->Id, $this->coordX, $this->coordY);
+		}
 	}
 
 	public function load($X, $Y) {
 		return $this;
 	}
 
+/**
+* @todo	thusfar this can move into parent model w/refactor
+**/
+        public function loadSerialized($Id=null) {
+                if (empty($Id)) {
+                        $Id = $this->Id;
+                }
+                $p = new Point();
+                $ret = $p->getQualityValue('IOData', $Id); // this will change after data is broken up
+                $ret = unserialize($ret);
+
+                return $ret;
+        }
+
+/***
+* @todo	thusfar this can move into parent model w/refactor
+***/
+	public function data_save() {
+//              Page::explain();
+
+                $p = new Point("Arena_TileLayer_".uniqid());
+                $this->Id = $p->Id;
+                if (!empty($this->origin_Id)) {
+                        $this->origin_Id = $this->Id; // better as PQual, or also PQual even?
+                }
+
+                $p->typify("TileLayer");
+                $payload = serialize($this);
+                $p->qualify(array('IOData' => $payload));
+        }
+
+/***
+* @todo	thusfar this can move into parent model w/refactor
+***/
 	public function log($mssg=null, $severity='general') {
 		if (empty($mssg)) { 
 			$mssg = 'Tile::log() called without $mssg argument.';
@@ -102,6 +147,7 @@ class Tile {
 **/
 	public function render() {
 		$claimed = '';
+		$onclick = '';
 		if (@is_array($this->claimed['current'])) {
 			$pack = $this->claimed['current']['type'].','.$this->claimed['current']['Id'];
 			$onclick = ' onclick="expose(\'tile-info\', \'#\', \'' . $pack . '\');"';

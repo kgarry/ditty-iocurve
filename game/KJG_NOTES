@@ -1,7 +1,27 @@
+# -----------------------------------
+# --- PLANNED ---
+# -----------------------------------
+p save update mode (no archving history)
+	update PLPQual value
+
+CRUD !!!
+
 field of vision
 perspective views
-cycling 'turns'
-hero placement / movement
-chance to spread into adjacent tiles
+hero movement
+tile terraform
 
 determine what can be in its own PType/qual set and re-factor for each
+
+
+# -----------------------------------
+# --- UNPLANNED ---
+# -----------------------------------
+redis
+
+# -----------------------------------
+# --- DONE ---
+# -----------------------------------
+cycling 'turns'
+hero placement
+chance to spread into adjacent tiles
