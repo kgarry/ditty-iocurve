@@ -4,11 +4,13 @@ require_once("bootstrap.php");
 /***
 *
 ***/
-class Arena {
+class Arena extends Point {
 	function __construct($Id=null) {
+		parent::__construct(); // todo could make point now if Id empty // change data_save..?
+
 		$this->scale = __ARENA_SCALE__;
 		if (!empty($Id) && is_int($Id+0)) { // add routine to verify ownership authority (or maybe not(view mode))
-			$this->load_arena = (object) $this->loadSerialized($Id);
+			$this->load_arena = (object) $this->loadSerialized($Id); // fixme kludge
 //Page::explain($load_arena, $__METHOD__);
 
 		}
@@ -60,7 +62,7 @@ class Arena {
 		$retArr = array();
 		foreach ($this->{$arrayElemName} as $item) {
 			$item->data_save();
-			$retArr[] = $item->Id;
+			$this->adoptPoint($item->Id);
 		}
 	}
 

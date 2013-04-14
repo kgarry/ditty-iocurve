@@ -274,10 +274,11 @@ ORDER BY dateCreated ASC";
 /***
 * FIXME
 ***/
-  function adoptPoint($new_child_Id) {
+  public function adoptPoint($new_child_Id, $parent=null) {
+    if (empty($parent)) { $parent = $this->Id; }
     $i = "
 INSERT INTO PLP
-SET fkP = " . $this->Id . "
+SET fkP = " . $parent . "
 , fkP2 = " . $new_child_Id . "
 , dateCreated = UNIX_TIMESTAMP()";
     $r = $this->conn->query($i);

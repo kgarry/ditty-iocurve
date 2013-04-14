@@ -3,7 +3,7 @@ require_once("bootstrap.php");
 /**
 *
 **/
-class Tile {
+class Tile extends Point{
 /***
 * add routine to verify ownership authority (or maybe not(view mode))
 ***/
