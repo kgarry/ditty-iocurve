@@ -336,11 +336,17 @@ AND fkP2 = " . $child_Id;
 /***
 * @desc		add a PType to this P
 ***/
-        private function typifyById($item) {
+        private function typifyById($item, $order=null) {
+		$orderLine = "";
+		if (!empty($order) && $order > 0) {
+			$orderLine = " , order = " . $order . " ";
+		}
+ 
 		$i = "
 INSERT INTO PLPType
 SET fkP = " . $this->Id . "
-, fkPType = " . $item ."
+, fkPType = " . $item . 
+$orderLine . "
 , dateCreated = UNIX_TIMESTAMP()";
 		try {
                         $this->conn->query($i);
@@ -355,12 +361,18 @@ SET fkP = " . $this->Id . "
 /***
 * @desc		add a PType to this P by looking up PType machine name
 ***/
-        private function typifyByName($item) {
+        private function typifyByName($item, $order=null) {
+		$orderLine = "";
+		if (!empty($order) && $order > 0) {
+			$orderLine = " , order = " . $order . " ";
+		}
+ 
 		$i = "
 INSERT INTO PLPType
 SET fkP = " . $this->Id . "
 , fkPType = (SELECT pkPType FROM PType WHERE MACHINE = '" . 
-		parent::sanitizeMachineName($item) . "')
+		parent::sanitizeMachineName($item) . "')" . 
+$orderLine . "
 , dateCreated = UNIX_TIMESTAMP()";
 		try {
                         $this->conn->query($i);
@@ -401,6 +413,7 @@ WHERE fkP = " . $this->Id . "
                 $this->conn->query($u);
 		//$this->saveNosqlPoint();
         }
+
 
 /***
 * @desc		add quality(s)
@@ -468,13 +481,14 @@ INSERT INTO PLPQual
 
 /***
 * @desc         deactivate a Quality union for this P
+* @todo		protected candidate
 ***/
-        function disqualify($fkQual) {
+        public function disqualify($fkQual) {
                 $u = "
 UPDATE PLPQual
 SET mode = b'1'
 WHERE fkP = " . $this->Id. "
-, fkPQual = " . $fkQual;
+ , fkPQual = " . $fkQual;
 
                 $this->conn->query($u);
 		//$this->saveNosqlPoint();
@@ -482,11 +496,12 @@ WHERE fkP = " . $this->Id. "
 
 /**
 * @param	$item (int OR string)
+		$Id ifnull, adhere self
 **/
 	public function getQualityValue($item, $Id=null) {
 		if (empty($Id)) {
 			$Id = $this->Id;
-echo 'using pkP : ' . $Id;
+//echo 'using pkP : ' . $Id;
 		}
 		
 		if (is_int($item)) {

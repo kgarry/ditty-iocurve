@@ -90,13 +90,13 @@ WHERE MACHINE = '" . $MACHINE . "'";
 * requires Id in object currently
 * 
 ***/
-  function loadType() {
+  function load($Id) { // this needs to go through a wash first todo
     $q = "
-SELECT name, description, mode, dateCreated
-FROM ioc.PType
-WHERE pkPType = " . $this->Id;
+SELECT name, lgDesc, mode, dateCreated
+FROM PType
+WHERE pkPType = " . $Id;
     $r = $this->conn->query($q);
-    $ret = $r->fetch_object($r);
+    $ret = $r->fetch_object();
 
     return $ret;
   }
@@ -138,26 +138,41 @@ WHERE pkPType = " . $this->Id;
   }
 
 /***
+* @param	fkType pkPType reference
+		ordermust be poistive
+***/
+  function orderType($fkType, $order) {
+    if ($order < 0) { return false; }
+
+    $u = "
+UPDATE PType
+SET order = {$order} 
+WHERE pkPType = " . $this->Id;
+
+    $this->conn->query($u);  
+  }
+
+/***
 * requires pkPQual as new_type_quality prior to call
 * could change to allow multi
 * could change to allow by name
 ***/
-	function qualifyType($fkQual) {
-		$i = "
+  function qualifyType($fkQual) {
+    $i = "
 INSERT INTO ioc.PQualLPType
 SET fkPType = {$this->Id}
 , fkPQual = {$fkQual}
 , dateCreated = UNIX_TIMESTAMP()";
 
-		try {
-			$this->conn->query($i);
-		}
-		catch (Exception $e) {
-			echo 'Caught exception: ',  $e->getMessage(),
-				"\nThe type Id ({$this->Id}) could not be qualified to quality Id ({$fkQual}).",
-				"\nsql: {$i}\n";
-		}
-	}
+    try {
+      $this->conn->query($i);
+    }
+    catch (Exception $e) {
+      echo 'Caught exception: ',  $e->getMessage(),
+        "\nThe type Id ({$this->Id}) could not be qualified to quality Id ({$fkQual}).",
+        "\nsql: {$i}\n";
+    }
+  }
 
 /***
 * requires target quality_Id for removal prior to call

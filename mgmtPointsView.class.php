@@ -5,11 +5,16 @@ require_once("mgmtView.class.php");
 
 class MgmtPointsView extends IOCurve {
 	public $content = 'undefined';
+  public $filters = array();
 
-	function __construct() {
+	function __construct($Id = null) {
 		parent::__construct();
 
-		$this->listPoints();
+    if (!empty($Id)) {
+      $this->filters['Id'] = $Id;
+    }
+		
+    $this->listPoints();
 	}
 
 /***
@@ -18,10 +23,16 @@ class MgmtPointsView extends IOCurve {
 	private function getPoints() {
 		// check for $this->filters here
 		// if (!empty($this->filters)) { }
+// GROUP_CONCAT(DISTINCT concat('<a target=_blank onclick=\"paintWires(\'./mgmt_view/type/', pt.pkPType, '\', \'extraInfoBox\'); setupJukeModal()\">', pt.name, '</a>') SEPARATOR ' | ') as typeList, 
+    $filter = false;
+    if (!empty($this->filters['Id'])) {
+      $filter = " AND pkP = " . $this->filters['Id'] . " ";
+    }
+
 		$q = "
 SELECT p.pkP as Id, p.Name, FROM_UNIXTIME(p.dateCreated) as created,
  count(DISTINCT plpt.fkPType) as numTypes, 
- GROUP_CONCAT(DISTINCT concat('<a target=_blank href=./mgmt_view/type/', pt.pkPType,'>', pt.name, '</a>') SEPARATOR ' | ') as typeList,
+ GROUP_CONCAT(DISTINCT concat(pt.name, '((:))', pt.pkPType, '[[:]]') SEPARATOR ' | ') as typeList,
  count(DISTINCT plpq.fkPQual) as numQuals,  
  GROUP_CONCAT(DISTINCT concat('<a target=_blank href=./mgmt_view/qual/', pq.pkPQual,'>', pq.name, '</a>') SEPARATOR ' | ') as qualList
 FROM P p
@@ -30,6 +41,8 @@ FROM P p
 
  LEFT JOIN PLPQual plpq ON plpq.fkP = p.pkP
  LEFT JOIN PQual pq ON pq.pkPQual = plpq.fkPQual
+
+WHERE 1 = 1 " . $filter . " 
 
 GROUP BY Id";
 		$r = $this->conn->query($q);
@@ -75,11 +88,12 @@ GROUP BY Id";
 		$types = $quals = '';
 		
 		if ($o['numTypes'] > 0) { 
-			$types = '<br><span class="strong">Types</span> (' . $o['numTypes'] . ') ' . $o['typeList'];
+			$types = '<br><span class="strong">Types</span> (' . $o['numTypes'] . ') ' . $this->translateTokenString($o['typeList']);
 		}
 		if ($o['numQuals'] > 0) { 
 			$quals = '<br><span class="strong">Qualities</span> (' . $o['numQuals'] . ') ' . $o['qualList'];
 		}
+
 		$ret = '<div id="' . $this->definePointDetailDomId($o['Id']) . '" class="hiddenInfo">' .
 			'<span class="strong">Created: </span>' . $o['created'] . 
 			$types .
@@ -89,6 +103,24 @@ GROUP BY Id";
 			'</div>';
 
 		return $ret;
+	}
+
+// '<a target=_blank onclick=\"paintWires(\'./mgmt_view/type/', pt.pkPType, '\', \'extraInfoBox\'); setupJukeModal()\">', pt.name, '</a>'
+	private function translateTokenString($tokensStr) {
+		$out = '';
+		
+		$arr = explode('[[:]]', $tokensStr);
+		foreach ($arr as $token) {
+			$parts = explode('((:))', $token);
+			if (!empty($parts[0])) {
+				$out .= '<a target=_blank onclick="paintWires(\'./mgmt_view/type/' . 
+					$parts[1] . 
+					'\', \'extraInfoBox\'); jQuery(\'.jukeModal\').css(\'display\', \'inline\');">' . 
+					$parts[0] . '</a>';
+			}
+		}
+		
+		return $out;
 	}
 
 	private function definePointDetailDomId($id) {

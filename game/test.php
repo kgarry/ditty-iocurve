@@ -15,7 +15,7 @@ $page = new BasicPage();
 if (!empty($_REQUEST['aid'])) { // todo check if they own the arenaId :)
 	$arena = new Arena($_REQUEST['aid']);
 	$arena = $arena->load_arena;
-Page::explain($arena, 'Begin test with _REQ aid', false);
+Page::explain($arena, 'Begin test with _REQ aid', true);
 	$arena->age();
 	
 	$blankTiles = $arena->locateTilesByType(__BLANK_TILE__);

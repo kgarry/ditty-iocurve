@@ -48,12 +48,15 @@ class MgmtView {
 				break;
 		}
 
+		$this->content .= $this->attachExtraInfo(); 
+
 		return $this->content . "\n";
 	}
 
 	private function loadPointsContent() {
-		require_once("mgmtPointsView.class.php"); 	
-		$pv = new MgmtPointsView();
+		require_once("mgmtPointsView.class.php"); 
+    $Id = (empty($_REQUEST['Id'])?null:$_REQUEST['Id']);
+		$pv = new MgmtPointsView($Id);
 		$this->content = $pv->pointsList;
 	}
 
@@ -101,5 +104,12 @@ class MgmtView {
 
 	public function makeCloneLink($type, $Id) {
 		return '<span class="strong">[ <a href="google.com/clone/'.strtolower($type).'/'.$Id.'" target="_blank">clone</a> ]</span> ';
+	}
+	
+	private function attachExtraInfo() {
+		$out = '<div id="extraInfoBox" class="jukeModal"></div>' .
+			'<script>setupJukeModal();</script>';
+
+		return $out;
 	}
 }

@@ -1,8 +1,9 @@
 <?php
 require_once("iocurve.class.php");
+//require_once("type.class.php");
 require_once("mgmtView.class.php");
 
-class MgmtTypesView extends IOCurve {
+class TypesView extends IOCurve {
 	public $content = 'undefined';
 
 	function __construct() {
