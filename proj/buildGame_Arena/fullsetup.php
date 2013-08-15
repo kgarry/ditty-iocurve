@@ -1,7 +1,7 @@
 <?php
 $start = microtime(true);
 
-$path = "/var/www/vhosts/ditty.iocurve.com/htdocs/lib/iocurve/game/buildGame_Empire";
+$path = "/var/www/vhosts/ditty.iocurve.com/htdocs/lib/iocurve/proj/buildGame_Arena";
 
 echo "\n... cleaning db\n";
 include($path . "/teardown.php");
