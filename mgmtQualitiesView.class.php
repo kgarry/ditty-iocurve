@@ -23,13 +23,14 @@ SELECT pq.pkPQual as Id, pq.Name, pq.MACHINE, FROM_UNIXTIME(pq.dateCreated) as c
  COUNT(DISTINCT plpq.fkP) as numPoints,
  GROUP_CONCAT(DISTINCT concat('<a target=_blank href=./mgmt_view/point/', p.pkP, '>', p.name, '</a>') SEPARATOR ' | ') as listPoints,
  COUNT(DISTINCT pt.pkPType) as numTypes,
- GROUP_CONCAT(DISTINCT concat('<a target=_blank href=./mgmt_view/type/', pt.pkPType,'>', pq.name, '</a>') SEPARATOR ' | ') as listTypes
+ GROUP_CONCAT(DISTINCT concat('<a target=_blank href=./mgmt_view/type/', pt.pkPType,'>', pt.name, '</a>') SEPARATOR ' | ') as listTypes
 FROM PQual pq
  LEFT JOIN PQualLPType pqlpt ON pqlpt.fkPQual = pq.pkPQual 
  LEFT JOIN PType pt ON pt.pkPType = pqlpt.fkPType
  LEFT JOIN PLPQual plpq ON plpq.fkPQual = pq.pkPQual
  LEFT JOIN P p ON p.pkP = plpq.fkP
 GROUP BY Id
+ORDER BY pq.name
 ";
 		$r = $this->conn->query($q);
 

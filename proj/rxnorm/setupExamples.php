@@ -1,6 +1,7 @@
 <?php
 // register starttime as micro/float
 #$start = microtime(true);
+
 $root_path 	= "/var/www/vhosts/ditty.iocurve.com/htdocs";
 $lib_path 	= "/lib/iocurve";	
 
@@ -14,9 +15,9 @@ require_once($root_path . $lib_path . "/quality.class.php");
 echo "\t...making some points\n";
 
 $conf_files = array(
-	'races.php',
-	'departments.php',
-	'resources.php',
+//	'races.php',
+//	'departments.php',
+//	'resources.php',
 );
 
 foreach ($conf_files as $conf) {

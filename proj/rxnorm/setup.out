@@ -1,0 +1,20 @@
+
+... cleaning db
+TRUNCATE PType (complete)
+TRUNCATE PQual (complete)
+TRUNCATE P (complete)
+TRUNCATE PLP (complete)
+TRUNCATE PLPType (complete)
+TRUNCATE PLPQual (complete)
+TRUNCATE PQualLPType (complete)
+- Runtime: 1.579540014267 seconds 
+... db cleaned
+
+... setting up base environment
+	 ... making some types
+	 ... making 'floater' qualities
+... base environment written
+
+... setting up point(s)
+	...making some points
+Done in 1.7617149353027s

@@ -157,7 +157,7 @@ WHERE pkPType = " . $this->Id;
 * could change to allow multi
 * could change to allow by name
 ***/
-  function qualifyType($fkQual) {
+  function qualify($fkQual) {
     $i = "
 INSERT INTO ioc.PQualLPType
 SET fkPType = {$this->Id}
@@ -177,7 +177,7 @@ SET fkPType = {$this->Id}
 /***
 * requires target quality_Id for removal prior to call
 ***/
-  function disqualifyType($fkQual) {
+  function disqualify($fkQual) {
     $u = "
 UPDATE ioc.PQualLPType
 SET mode = b'0'
